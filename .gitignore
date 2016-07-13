@@ -1,3 +1,23 @@
+# emacs backup files
+*~
+
+# MCMC stuff
+*_chain.txt
+*_likes.txt
+*_best.txt
+
+# Plots
+*.png
+*.jpg
+*.eps
+*.jpeg
+
+# Prepped Data
+fitting_mf/prepped_data/*
+
+# Pickled Emulators
+*emu.p
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
