@@ -24,12 +24,15 @@ cov_path = data_base+"/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 build_emulators = False
 examine_emulators = True
 
-top_path = "/home/tmcclintock/Desktop/Github_stuff/Weak-Lensing-Emulator/"
-path_to_cosmos = top_path+"cosmology_files/building_cosmos_no_z.txt"
+path_to_cosmos = "../cosmology_files/building_cosmos_no_z.txt"
 cosmos = np.genfromtxt(path_to_cosmos).T
 cosmos = np.delete(cosmos,39,1)
 #Needs this shape to build the emulator from
 
+#This is the scale factor pivot
+pivot = 0.5
+
+#Name of emulators
 f0_name = "f0_%03d_emu"
 g0_name = "g0_%03d_emu"
 f1_name = "f1_%03d_emu"
@@ -138,10 +141,10 @@ for i in xrange(0,1):#Ncosmos):
         for z_index in xrange(0,1):#Nreds):
             redshift = redshifts[z_index]
             sf = 1./(1.+redshift)
-            f_test = f0_test + (1.-sf)*f1_test
-            f_var = f0_var + (1.-sf)**2*f1_var
-            g_test = g0_test + (1.-sf)*g1_test
-            g_var = g0_var + (1.-sf)**2*g1_var
+            f_test = f0_test + (pivot-sf)*f1_test
+            f_var = f0_var + (pivot-sf)**2*f1_var
+            g_test = g0_test + (pivot-sf)*g1_test
+            g_var = g0_var + (pivot-sf)**2*g1_var
 
             #Read in the NM data
             indata = np.loadtxt(data_path%(i,i,z_index))

@@ -12,7 +12,7 @@ scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,
 redshifts = 1./scale_factors - 1.0
 volume = 1.e9 #(1000.)**3 #(Mpc/h)^3
 
-cosmo_path = "cosmology_files/building_cosmos_no_z.txt"
+cosmo_path = "../cosmology_files/building_cosmos_no_z.txt"
 cosmos = np.genfromtxt(cosmo_path).T
 cosmos = np.delete(cosmos,39,1)
 #Need to remove last cosmology because it broke
@@ -20,7 +20,7 @@ cosmos = np.delete(cosmos,39,1)
 param_names = [r"$\Omega_bh^2$",r"$\Omega_ch^2$",r"$w_0$",r"$n_s$",r"$\log_{10}A_s$",r"$H_0$",r"$N_{eff}$",r"$\sigma_8$"]
 simple_param_names = ["Omegabh2","Omegach2","w0","ns","log10As","H0","Neff","sigma8"]
 
-build_emulators = False
+build_emulators = True
 
 f0_name = "f0_emu"
 g0_name = "g0_emu"
@@ -67,5 +67,4 @@ if build_emulators:
     g1_emu.train()
     print "\tSaving %s"%g1_name
     g1_emu.save("saved_emulators/%s"%g1_name)
-    print g1_emu
     print "\t%s saved"%g1_name

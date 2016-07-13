@@ -17,6 +17,7 @@ make_f_plots = False
 make_g_plots = False
 
 #First fit f with a line for each cosmology
+pivot = 0.5
 N_cosmos = 39 #40 #last one is broken
 N_reds = 10
 f0_path = "linear_fits/f0.txt"
@@ -33,7 +34,7 @@ for i in xrange(0,N_cosmos):
     fv_i = f_var_all[i*N_reds:i*N_reds+10]
 
     ones = np.ones_like(scale_factors)
-    A = np.vstack((ones,scale_factors))
+    A = np.vstack((ones,(pivot-scale_factors)))
     C = np.diag(fv_i)
     Cinv = np.linalg.inv(C)
     left = np.linalg.inv(np.dot(A,np.dot(Cinv,A.T)))
@@ -50,7 +51,7 @@ for i in xrange(0,N_cosmos):
     f1_var.append(cout[1,1])
     if make_f_plots:
         domain = np.linspace(min(scale_factors),max(scale_factors),100)
-        model = b+m*domain
+        model = b+m*(pivot-domain)
         plt.errorbar(scale_factors,f_i,np.sqrt(fv_i))
         plt.plot(domain,model)
         plt.show()
@@ -78,7 +79,7 @@ for i in xrange(0,N_cosmos):
     gv_i = g_var_all[i*N_reds:i*N_reds+10]
 
     ones = np.ones_like(scale_factors)
-    A = np.vstack((ones,scale_factors))
+    A = np.vstack((ones,(pivot-scale_factors)))
     C = np.diag(gv_i)
     Cinv = np.linalg.inv(C)
     left = np.linalg.inv(np.dot(A,np.dot(Cinv,A.T)))
@@ -95,7 +96,7 @@ for i in xrange(0,N_cosmos):
     g1_var.append(cout[1,1])
     if make_g_plots:
         domain = np.linspace(min(scale_factors),max(scale_factors),100)
-        model = b+m*domain
+        model = b+m*(pivot-domain)
         plt.errorbar(scale_factors,g_i,np.sqrt(gv_i))
         plt.plot(domain,model)
         plt.show()

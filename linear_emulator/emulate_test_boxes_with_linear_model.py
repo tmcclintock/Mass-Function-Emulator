@@ -27,6 +27,9 @@ cov_path = data_base+"/covariances/%s_cov/%s_cov_Z%d.txt"
 cosmos_path = "../cosmology_files/test_cosmologies.txt"
 cosmos = np.genfromtxt(cosmos_path)
 
+#This is the scale factor pivot
+pivot = 0.5
+
 """
 Read in the emulators.
 """
@@ -68,15 +71,15 @@ for box_ind in xrange(0,1):#Ntests):
         redshift = redshifts[z_index]
         sf = 1./(1.+redshift)
         #Predict f and g
-        f_test = f0_test + (1.-sf)*f1_test
-        f_var = f0_var + (1.-sf)**2*f1_var
-        g_test = g0_test + (1.-sf)*g1_test
-        g_var = g0_var + (1.-sf)**2*g1_var
+        f_test = f0_test + (pivot-sf)*f1_test
+        f_var = f0_var + (pivot-sf)**2*f1_var
+        g_test = g0_test + (pivot-sf)*g1_test
+        g_var = g0_var + (pivot-sf)**2*g1_var
         print sf
         print f_test, np.sqrt(f_var)
         print g_test, np.sqrt(g_var)
 
-        for real_ind in xrange(Nreals-1,Nreals):
+        for real_ind in xrange(0,1):#Nreals-1,Nreals):
             
             box = boxname%(box_ind,real_ind)
             data_test = data_path%(box,box,z_index)
