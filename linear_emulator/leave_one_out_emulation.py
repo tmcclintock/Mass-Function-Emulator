@@ -21,7 +21,7 @@ data_base = "/home/tmcclintock/Desktop/Mass_Function_Data/"
 data_path = data_base+"full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
 cov_path = data_base+"/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
-build_emulators = False
+build_emulators = True
 examine_emulators = True
 
 path_to_cosmos = "../cosmology_files/building_cosmos_no_z.txt"
@@ -60,7 +60,7 @@ Then save the emulator.
 """
 
 
-for i in xrange(0,1):#Ncosmos):
+for i in xrange(0,Ncosmos):
     if build_emulators:
         cosmos_used = np.delete(cosmos,i,1)
         f0_means_used = np.delete(f0_means,i)
@@ -138,7 +138,8 @@ for i in xrange(0,1):#Ncosmos):
         cosmo_dict = {"om":Om,"ob":Ob,"ol":1-Om,\
                           "ok":0.0,"h":h,"s8":sigma8,\
                           "ns":ns,"w0":w0,"wa":0.0}
-        for z_index in xrange(0,1):#Nreds):
+        for z_index in xrange(0,Nreds):
+            print "\tExaminging at Z%d"%z_index
             redshift = redshifts[z_index]
             sf = 1./(1.+redshift)
             f_test = f0_test + (pivot-sf)*f1_test
@@ -181,4 +182,4 @@ for i in xrange(0,1):#Ncosmos):
             savepath = "plots/NM_plots/NM_LOO_emulated_Box%03d_Z%d.png"%(i,z_index)
             sigma_savepath = "plots/gsigma_plots/gsigma_LOO_emulated_Box%03d_Z%d.png"%(i,z_index)
             visualize.NM_emulated(lM,NM_data,NM_err,lM,NM_best,NM_best_err,title,savepath)
-            #visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)
+            visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)

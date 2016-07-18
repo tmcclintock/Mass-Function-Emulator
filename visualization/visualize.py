@@ -6,7 +6,7 @@ import cosmocalc as cc
 import matplotlib.pyplot as plt
 plt.rc('text',usetex=True, fontsize=20)
 
-show_plots = True
+show_plots = False
 
 def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model):
     f,axarr = plt.subplots(2, sharex = True)

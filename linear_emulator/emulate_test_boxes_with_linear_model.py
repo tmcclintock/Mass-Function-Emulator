@@ -50,7 +50,7 @@ g1_emu.load("saved_emulators/%s"%g1_name)
 """
 Loop over each test box.
 """
-for box_ind in xrange(0,1):#Ntests):
+for box_ind in xrange(0,Ntests):
     cosmo = cosmos[box_ind]
     #Build a cosmo_dict
     h = cosmo[5]/100.
@@ -67,7 +67,7 @@ for box_ind in xrange(0,1):#Ntests):
     f1_test,f1_var = f1_emu.predict_one_point(cosmo)
     g1_test,g1_var = g1_emu.predict_one_point(cosmo)
 
-    for z_index in xrange(9,Nreds):
+    for z_index in xrange(0,Nreds):
         redshift = redshifts[z_index]
         sf = 1./(1.+redshift)
         #Predict f and g
@@ -79,7 +79,7 @@ for box_ind in xrange(0,1):#Ntests):
         print f_test, np.sqrt(f_var)
         print g_test, np.sqrt(g_var)
 
-        for real_ind in xrange(0,1):#Nreals-1,Nreals):
+        for real_ind in xrange(0,Nreals):
             
             box = boxname%(box_ind,real_ind)
             data_test = data_path%(box,box,z_index)
@@ -120,5 +120,5 @@ for box_ind in xrange(0,1):#Ntests):
             
             print "\tcreating NM plot for %s at Z%d or z=%.2f"%(box,z_index,redshift)
             visualize.NM_emulated(lM,NM_data,NM_err,lM,NM_best,NM_best_err,title,savepath)
-            #print "\tcreating g(sigma) plot for %s at Z%d or z=%.2f"%(box,z_index,redshift)
-            #visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)
+            print "\tcreating g(sigma) plot for %s at Z%d or z=%.2f"%(box,z_index,redshift)
+            visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)
