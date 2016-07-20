@@ -3,6 +3,8 @@ This builds the leave-one-out emulators.
 """
 import numpy as np
 import sys
+import matplotlib as m
+import matplotlib.pyplot as plt
 sys.path.insert(0,"../NM_model/")
 sys.path.insert(0,"../Emulator/")
 sys.path.insert(0,"../visualization/")
@@ -21,7 +23,7 @@ data_base = "/home/tmcclintock/Desktop/Mass_Function_Data/"
 data_path = data_base+"full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
 cov_path = data_base+"/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
-build_emulators = True
+build_emulators = False
 examine_emulators = True
 
 path_to_cosmos = "../cosmology_files/building_cosmos_no_z.txt"
@@ -47,10 +49,13 @@ f0_vars = np.genfromtxt("linear_fits/f0_var.txt")
 g0_vars = np.genfromtxt("linear_fits/g0_var.txt")
 f1_vars = np.genfromtxt("linear_fits/f1_var.txt")
 g1_vars = np.genfromtxt("linear_fits/g1_var.txt")
+f0f1_covars = np.genfromtxt("linear_fits/f0f1_covar.txt")
+g0g1_covars = np.genfromtxt("linear_fits/g0g1_covar.txt")
 f0_err = np.sqrt(f0_vars)
 f1_err = np.sqrt(f1_vars)
 g0_err = np.sqrt(g0_vars)
 g1_err = np.sqrt(g1_vars)
+
 
 """
 Loop over each cosmology and
@@ -58,7 +63,6 @@ build an emulator without that cosmology included.
 
 Then save the emulator.
 """
-
 
 for i in xrange(0,Ncosmos):
     if build_emulators:
@@ -103,7 +107,7 @@ for i in xrange(0,Ncosmos):
         print "\t%s saved"%g1_name%(i)
 
     if examine_emulators:
-        print "Examining"
+        print "Examining %d"%i
         cosmo_predicted = cosmos[:,i]
         f0_real = f0_means[i]
         g0_real = g0_means[i]
@@ -122,12 +126,11 @@ for i in xrange(0,Ncosmos):
         g0_test,g0_var = g0_emu.predict_one_point(cosmo_predicted)
         f1_test,f1_var = f1_emu.predict_one_point(cosmo_predicted)
         g1_test,g1_var = g1_emu.predict_one_point(cosmo_predicted)
-        print "f0real = %f   f0 = %f +- %f"%(f0_real,f0_test,np.sqrt(f0_var))
-        print "g0real = %f   g0 = %f +- %f"%(g0_real,g0_test,np.sqrt(g0_var))
-        print "f1real = %f   f1 = %f +- %f"%(f1_real,f1_test,np.sqrt(f1_var))
-        print "g1real = %f   g1 = %f +- %f"%(g1_real,g1_test,np.sqrt(g1_var))
+        #print "f0real = %f   f0 = %f +- %f"%(f0_real,f0_test,np.sqrt(f0_var))
+        #print "g0real = %f   g0 = %f +- %f"%(g0_real,g0_test,np.sqrt(g0_var))
+        #print "f1real = %f   f1 = %f +- %f"%(f1_real,f1_test,np.sqrt(f1_var))
+        #print "g1real = %f   g1 = %f +- %f"%(g1_real,g1_test,np.sqrt(g1_var))
 
-        
         #Build a cosmo_dict
         h = cosmo_predicted[5]/100.
         Om = (cosmo_predicted[0]+cosmo_predicted[1])/h**2
@@ -138,12 +141,16 @@ for i in xrange(0,Ncosmos):
         cosmo_dict = {"om":Om,"ob":Ob,"ol":1-Om,\
                           "ok":0.0,"h":h,"s8":sigma8,\
                           "ns":ns,"w0":w0,"wa":0.0}
+
+        #Read in the hyperparameter covariances
+        param_cov = np.loadtxt("../building_data/tinker_hyperparam_covariances.txt")
+
         for z_index in xrange(0,Nreds):
-            print "\tExaminging at Z%d"%z_index
+            print "\tExamining at Z%d"%z_index
             redshift = redshifts[z_index]
             sf = 1./(1.+redshift)
             f_test = f0_test + (pivot-sf)*f1_test
-            f_var = f0_var + (pivot-sf)**2*f1_var
+            f_var = f0_var + (pivot-sf)**2*f1_var 
             g_test = g0_test + (pivot-sf)*g1_test
             g_var = g0_var + (pivot-sf)**2*g1_var
 
@@ -170,13 +177,13 @@ for i in xrange(0,Ncosmos):
             #Evaluate the model
             best_model = [1.97,1.0,f_test,g_test]
             NM_best = NM_model_obj.MF_model_all_bins(lM_bins,best_model,redshift)
-            NM_var = NM_model_obj.var_MF_model_all_bins(lM_bins,best_model,[f_var,g_var])
+            cov_fg = param_cov[0,2]+(pivot-sf)*(param_cov[1,2]+param_cov[0,3])+(pivot-sf)**2*param_cov[1,3]
+            NM_var = NM_model_obj.var_MF_model_all_bins(lM_bins,best_model,[f_var,g_var])#,cov_fg)
             NM_best_err = np.sqrt(NM_var)
             
             #for j in range(len(lM)):
             #    print lM_bins[j],"%e +- %e    %e+-%e"%(NM_data[j],NM_err[j],NM_best[j],NM_best_err[j])
 
-            import visualize
             #visualize.NM_plot(lM,NM_data,NM_err,lM,NM_best)
             title = "Box%03d left out for z=%f"%(i,redshift)
             savepath = "plots/NM_plots/NM_LOO_emulated_Box%03d_Z%d.png"%(i,z_index)

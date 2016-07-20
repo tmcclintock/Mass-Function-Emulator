@@ -24,10 +24,12 @@ f0_path = "linear_fits/f0.txt"
 f1_path = "linear_fits/f1.txt"
 f0_var_path = "linear_fits/f0_var.txt"
 f1_var_path = "linear_fits/f1_var.txt"
+f0f1_covar_path = "linear_fits/f0f1_covar.txt"
 f0 = []
 f0_var = []
 f1 = []
 f1_var = []
+f0f1_covar = []
 for i in xrange(0,N_cosmos):
     #Loop over redshifts to assemble the correct vector
     f_i = f_all[i*N_reds:i*N_reds+10]
@@ -49,6 +51,7 @@ for i in xrange(0,N_cosmos):
     f0_var.append(cout[0,0])
     f1.append(m)
     f1_var.append(cout[1,1])
+    f0f1_covar.append(cout[0,1])
     if make_f_plots:
         domain = np.linspace(min(scale_factors),max(scale_factors),100)
         model = b+m*(pivot-domain)
@@ -59,20 +62,24 @@ f0 = np.array(f0)
 f1 = np.array(f1)
 f0_var = np.array(f0_var)
 f1_var = np.array(f1_var)
+f0f1_covar = np.array(f0f1_covar)
 
 np.savetxt(f0_path,f0)
 np.savetxt(f1_path,f1)
 np.savetxt(f0_var_path,f0_var)
 np.savetxt(f1_var_path,f1_var)
+np.savetxt(f0f1_covar_path,f0f1_covar)
 
 g0_path = "linear_fits/g0.txt"
 g1_path = "linear_fits/g1.txt"
 g0_var_path = "linear_fits/g0_var.txt"
 g1_var_path = "linear_fits/g1_var.txt"
+g0g1_covar_path = "linear_fits/g0g1_covar.txt"
 g0 = []
 g0_var = []
 g1 = []
 g1_var = []
+g0g1_covar = []
 for i in xrange(0,N_cosmos):
     #Loop over redshifts to assemble the correct vector
     g_i = g_all[i*N_reds:i*N_reds+10]
@@ -94,6 +101,7 @@ for i in xrange(0,N_cosmos):
     g0_var.append(cout[0,0])
     g1.append(m)
     g1_var.append(cout[1,1])
+    g0g1_covar.append(cout[0,1])
     if make_g_plots:
         domain = np.linspace(min(scale_factors),max(scale_factors),100)
         model = b+m*(pivot-domain)
@@ -104,11 +112,12 @@ g0 = np.array(g0)
 g1 = np.array(g1)
 g0_var = np.array(g0_var)
 g1_var = np.array(g1_var)
-
+g0g1_covar = np.array(g0g1_covar)
 np.savetxt(g0_path,g0)
 np.savetxt(g1_path,g1)
 np.savetxt(g0_var_path,g0_var)
 np.savetxt(g1_var_path,g1_var)
+np.savetxt(g0g1_covar_path,g0g1_covar)
 
 
     

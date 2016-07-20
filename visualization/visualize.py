@@ -55,6 +55,11 @@ def NM_emulated(lM_data, NM_data, NM_err, lM_emu, NM_emu, NM_emu_err,title,savep
     axarr[1].plot(lM_data,resid_upper,c='g')
     axarr[1].plot(lM_data,resid_lower,c='g')
 
+    #Draw dashed lines at 1%
+    lims = axarr[1].get_xlim()
+    axarr[1].plot(lims,[1,1],"k--",zorder=-1,alpha=0.5)
+    axarr[1].plot(lims,[-1,-1],"k--",zorder=-1,alpha=0.5)
+
     #axarr[1].set_ylim(-50,50)
     axarr[1].set_ylim(-5,5)
     axarr[1].set_xlabel(r"$\log_{10}M\ [M_\odot/h]$")

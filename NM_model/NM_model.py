@@ -1,10 +1,12 @@
 import cosmocalc as cc
 from scipy import special
+from scipy.special import gamma,digamma
 from scipy import integrate
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 import numpy as np
 
 TOL = 1e-3
+DELTA = 1e-6
 
 class MF_model(object):
     """
@@ -52,27 +54,27 @@ class MF_model(object):
         return
 
     def B_coeff(self,d,e,f,g):
-        return 2.0/(e**d * g**(-d/2.)*special.gamma(d/2.) + g**(-f/2.)*special.gamma(f/2.))
+        return 2.0/(e**d * g**(-d/2.)*gamma(d/2.) + g**(-f/2.)*gamma(f/2.))
 
     def dB_df(self,d,e,f,g):
         B = self.B_coeff(d,e,f,g)
-        return B*B/2*(g**(-f/2.)*np.log(g)*special.gamma(f/2.)-g**(-f/2.)*special.gamma(f/2.)*special.digamma(f/2.))
+        return B*B/4.*g**(-f/2.)*gamma(f/2.)*(np.log(g) - digamma(f/2.))
 
     def dB_dg(self,d,e,f,g):
         B = self.B_coeff(d,e,f,g)
-        return B*B/2.*(d*e**d*g**(-d/2.-1)*special.gamma(d/2.) + f*g**(-f/2.-1)*special.gamma(f/2.))
+        return B*B/4.*(d*e**d*g**(-d/2.)/g*gamma(d/2.) + f*g**(-f/2.)/g*gamma(f/2.))
 
     def dg_df(self,sigma,params):
         d,e,f,g = params
         dBdf = self.dB_df(d,e,f,g)
         B = self.B_coeff(d,e,f,g)
-        return dBdf*((sigma/e)**-d+sigma**-f)*np.exp(-g/sigma**2) -B*sigma**-f*np.log(sigma)
+        return dBdf*((sigma/e)**-d+sigma**-f)*np.exp(-g/sigma**2) - B*sigma**-f*np.log(sigma)*np.exp(-g/sigma**2)
 
     def dg_dg(self,sigma,params):
         d,e,f,g = params
         dBdg = self.dB_dg(d,e,f,g)
-        g = self.calc_g(sigma,params)
-        return -g/sigma**2 + dBdg*np.exp(-g/sigma**2)*((sigma/e)**-d + sigma**-f)
+        g_sigma = self.calc_g(sigma,params)
+        return dBdg*np.exp(-g/sigma**2)*((sigma/e)**-d + sigma**-f) - g_sigma/sigma**2
         
     def calc_g(self,sigma,params):
         d,e,f,g = params
@@ -80,40 +82,61 @@ class MF_model(object):
 
     def ddf_dndM_at_M(self,lM,params):
         rhom,dln_sig_inv_dM_spline = self.rhom,self.deriv_spline
-        #M = np.exp(lM)
-        M = 10**lM
+        M = np.exp(lM)
         dgdf = self.dg_df(cc.sigmaMtophat(M,self.scale_factor),params)
-        return dgdf * self.rhom*dln_sig_inv_dM_spline(M) #*M/M #log integral
+        return dgdf*rhom*dln_sig_inv_dM_spline(M) #*M/M #log integral
 
     def ddg_dndM_at_M(self,lM,params):
         rhom,dln_sig_inv_dM_spline = self.rhom,self.deriv_spline
-        #M = np.exp(lM)
-        M = 10**lM
+        M = np.exp(lM)
         dgdg = self.dg_dg(cc.sigmaMtophat(M,self.scale_factor),params)
-        return dgdg * self.rhom*dln_sig_inv_dM_spline(M) #*M/M #log integral
+        return dgdg*rhom*dln_sig_inv_dM_spline(M) #*M/M #log integral
 
     def dndM_at_M(self,lM,params):
         rhom,dln_sig_inv_dM_spline = self.rhom,self.deriv_spline
         M = np.exp(lM)
         g_sigma = self.calc_g(cc.sigmaMtophat(M,self.scale_factor),params)
-        return g_sigma * self.rhom*dln_sig_inv_dM_spline(M) #*M/M #log integral
+        return g_sigma * rhom*dln_sig_inv_dM_spline(M) #*M/M #log integral
+    
+    def var_MF_model_in_bin(self,lMlow,lMhigh,params,variances,cov_fg = 0):
+        dNdf = integrate.quad(self.ddf_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume
+        dNdg = integrate.quad(self.ddg_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume
+        
+        #fparams1 = np.copy(params)
+        #df = params[2]*DELTA
+        #fparams1[2] += df/2.
+        #fparams2 = np.copy(params)
+        #fparams2[2] -= df/2.
+        #dNdf = (integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(fparams1))[0] - integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(fparams2))[0])/df*self.volume
 
-    def var_MF_model_in_bin(self,lMlow,lMhigh,params,variances):
-        dNdf = integrate.quad(self.ddf_dndM_at_M,lMlow,lMhigh,args=(params),\
-                                  epsabs=TOL,epsrel=TOL/10.)[0]*self.volume
-        dNdg = integrate.quad(self.ddg_dndM_at_M,lMlow,lMhigh,args=(params),\
-                                  epsabs=TOL,epsrel=TOL/10.)[0]*self.volume
-        return dNdf**2*variances[0] + dNdg**2*variances[1]
+        #gparams1 = np.copy(params)
+        #dg = params[3]*DELTA
+        #gparams1[3] += dg/2.
+        #gparams2 = np.copy(params)
+        #gparams2[3] -= dg/2.
+        #dNdg = (integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(gparams1))[0] - integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(gparams2))[0])/dg*self.volume
+
+        #print ""
+        #print dNdf, variances[0], dNdf**2*variances[0]
+        #print dNdg, variances[1], dNdg**2*variances[1]
+        #print dNdf*dNdg, cov_fg, 2*dNdf*dNdg*cov_fg
+        #print dNdf**2*variances[0] + dNdg**2*variances[1] + 2*dNdf*dNdg*cov_fg
+        
+        return dNdf**2*variances[0] + dNdg**2*variances[1] + 2*dNdf*dNdg*cov_fg
 
     def MF_model_in_bin(self,lMlow,lMhigh,params):
-        return integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(params),epsabs=TOL,epsrel=TOL/10.)[0]*self.volume
+        return integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume
 
     """
     The veriable 'variances' contains the
     variance in the paramters, namely f and g.
+
+    The covariance between f and g is contained in the cov_fg term,
+    which may or may not be passed in and if not is set to 0.
     """
-    def var_MF_model_all_bins(self,lM_bins,params,variances):
-        return np.array([self.var_MF_model_in_bin(lMlow,lMhigh,params,variances) for lMlow,lMhigh in lM_bins])
+    def var_MF_model_all_bins(self,lM_bins,params,variances,cov_fg = 0):
+        lM_bins_natural = np.log(10**lM_bins)
+        return np.array([self.var_MF_model_in_bin(lMlow,lMhigh,params,variances,cov_fg) for lMlow,lMhigh in lM_bins_natural])
 
     def MF_model_all_bins(self,lM_bins,params,redshift):
         if not (redshift == self.redshift):
