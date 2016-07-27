@@ -25,6 +25,11 @@ cov_path = data_base+"/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
 build_emulators = False
 examine_emulators = True
+chi2_test = True
+visualize_curves = False
+
+chi2_array = np.zeros((Ncosmos,Nreds))
+dof_array = np.zeros((Ncosmos,Nreds))
 
 path_to_cosmos = "../cosmology_files/building_cosmos_no_z.txt"
 cosmos = np.genfromtxt(path_to_cosmos).T
@@ -177,16 +182,40 @@ for i in xrange(0,Ncosmos):
             #Evaluate the model
             best_model = [1.97,1.0,f_test,g_test]
             NM_best = NM_model_obj.MF_model_all_bins(lM_bins,best_model,redshift)
-            cov_fg = param_cov[0,2]+(pivot-sf)*(param_cov[1,2]+param_cov[0,3])+(pivot-sf)**2*param_cov[1,3]
-            NM_var = NM_model_obj.var_MF_model_all_bins(lM_bins,best_model,[f_var,g_var])#,cov_fg)
-            NM_best_err = np.sqrt(NM_var)
-            
-            #for j in range(len(lM)):
-            #    print lM_bins[j],"%e +- %e    %e+-%e"%(NM_data[j],NM_err[j],NM_best[j],NM_best_err[j])
 
-            #visualize.NM_plot(lM,NM_data,NM_err,lM,NM_best)
+            cov_fg = param_cov[0,2] + (pivot-sf)*(param_cov[1,2]+param_cov[0,3]) + (pivot-sf)**2*param_cov[1,3]
+            cov_ff = param_cov[0,0] + (pivot-sf)*param_cov[0,1] + (pivot-sf)**2*param_cov[1,1]
+            cov_gg = param_cov[2,2] + (pivot-sf)*param_cov[2,3] + (pivot-sf)**2*param_cov[3,3]
+            #print param_cov
+            #print cov_fg,cov_ff,cov_gg
+
+            NM_var = NM_model_obj.var_MF_model_all_bins(lM_bins,best_model,[cov_ff,cov_gg],cov_fg)
+            NM_best_err = np.sqrt(NM_var)
+                        
             title = "Box%03d left out for z=%f"%(i,redshift)
-            savepath = "plots/NM_plots/NM_LOO_emulated_Box%03d_Z%d.png"%(i,z_index)
-            sigma_savepath = "plots/gsigma_plots/gsigma_LOO_emulated_Box%03d_Z%d.png"%(i,z_index)
-            visualize.NM_emulated(lM,NM_data,NM_err,lM,NM_best,NM_best_err,title,savepath)
-            visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)
+
+            if chi2_test:
+                chi2_cosmo = 0
+                cov_emu = NM_model_obj.covariance_MF(lM_bins,best_model,[cov_ff,cov_gg],cov_fg)
+                #print cov.shape, cov_emu.shape
+                #print cov.shape, cov_emu.shape, NM_data.shape, NM_best.shape
+                cov_full = cov+cov_emu
+                icov = np.linalg.inv(cov_full)
+                diff = NM_data - NM_best
+                #print icov.shape, diff.shape
+                for j in range(len(icov)):
+                    for k in range(len(icov[j])):
+                        chi2_cosmo += diff[j] * icov[j,k] * diff[k]
+                #print "\tchi2 = %e"%chi2_cosmo
+                chi2_array[i,z_index] = chi2_cosmo
+                dof_array[i,z_index] = len(NM_data)
+
+            if visualize_curves:
+                savepath = "plots/NM_plots/NM_LOO_emulated_Box%03d_Z%d.png"%(i,z_index)
+                sigma_savepath = "plots/gsigma_plots/gsigma_LOO_emulated_Box%03d_Z%d.png"%(i,z_index)
+                visualize.NM_emulated(lM,NM_data,NM_err,lM,NM_best,NM_best_err,title,savepath)
+                #visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)
+
+if chi2_test and examine_emulators:
+    np.savetxt("txt_files/LOO_chi2.txt",chi2_array)
+    np.savetxt("txt_files/LOO_dof.txt",dof_array)

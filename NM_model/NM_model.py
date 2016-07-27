@@ -98,45 +98,65 @@ class MF_model(object):
         g_sigma = self.calc_g(cc.sigmaMtophat(M,self.scale_factor),params)
         return g_sigma * rhom*dln_sig_inv_dM_spline(M) #*M/M #log integral
     
-    def var_MF_model_in_bin(self,lMlow,lMhigh,params,variances,cov_fg = 0):
-        dNdf = integrate.quad(self.ddf_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume
-        dNdg = integrate.quad(self.ddg_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume
-        
-        #fparams1 = np.copy(params)
-        #df = params[2]*DELTA
-        #fparams1[2] += df/2.
-        #fparams2 = np.copy(params)
-        #fparams2[2] -= df/2.
-        #dNdf = (integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(fparams1))[0] - integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(fparams2))[0])/df*self.volume
+    def var_MF_model_in_bin(self,lMlow,lMhigh,params,fg_variances,cov_fg = 0):
+        volume = self.volume
+        dNdf = integrate.quad(self.ddf_dndM_at_M,lMlow,lMhigh,args=(params))[0]*volume
+        dNdg = integrate.quad(self.ddg_dndM_at_M,lMlow,lMhigh,args=(params))[0]*volume
 
-        #gparams1 = np.copy(params)
-        #dg = params[3]*DELTA
-        #gparams1[3] += dg/2.
-        #gparams2 = np.copy(params)
-        #gparams2[3] -= dg/2.
-        #dNdg = (integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(gparams1))[0] - integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(gparams2))[0])/dg*self.volume
-
+        #delf = params[2]*DELTA
+        #delg = params[3]*DELTA
+        #paramsf1 = np.copy(params)
+        #paramsf2 = np.copy(params)
+        #paramsf1[2] = paramsf1[2]+delf/2.
+        #paramsf2[2] = paramsf2[2]-delf/2.
+        #paramsg1 = np.copy(params)
+        #paramsg2 = np.copy(params)
+        #paramsg1[3] = paramsg1[3]+delg/2.
+        #paramsg2[3] = paramsg2[3]-delg/2.
+        #dNdf = (integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(paramsf1))[0]-integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(paramsf2))[0])*volume/delf
+        #dNdg = (integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(paramsg1))[0]-integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(paramsg2))[0])*volume/delg
         #print ""
-        #print dNdf, variances[0], dNdf**2*variances[0]
-        #print dNdg, variances[1], dNdg**2*variances[1]
+        #print dNdf, fg_variances[0], dNdf**2*fg_variances[0]
+        #print dNdg, fg_variances[1], dNdf**2*fg_variances[1]
         #print dNdf*dNdg, cov_fg, 2*dNdf*dNdg*cov_fg
-        #print dNdf**2*variances[0] + dNdg**2*variances[1] + 2*dNdf*dNdg*cov_fg
+        #print dNdf**2*fg_variances[0] + dNdg**2*fg_variances[1] + 2*dNdf*dNdg*cov_fg
+        #print ""
         
-        return dNdf**2*variances[0] + dNdg**2*variances[1] + 2*dNdf*dNdg*cov_fg
+        return dNdf**2*fg_variances[0] + dNdg**2*fg_variances[1] + 2*dNdf*dNdg*cov_fg
 
     def MF_model_in_bin(self,lMlow,lMhigh,params):
         return integrate.quad(self.dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume
 
     """
-    The veriable 'variances' contains the
+    The veriable 'fg_variances' contains the
     variance in the paramters, namely f and g.
 
     The covariance between f and g is contained in the cov_fg term,
     which may or may not be passed in and if not is set to 0.
     """
-    def var_MF_model_all_bins(self,lM_bins,params,variances,cov_fg = 0):
+    def var_MF_model_all_bins(self,lM_bins,params,fg_variances,cov_fg = 0):
         lM_bins_natural = np.log(10**lM_bins)
-        return np.array([self.var_MF_model_in_bin(lMlow,lMhigh,params,variances,cov_fg) for lMlow,lMhigh in lM_bins_natural])
+        return np.array([self.var_MF_model_in_bin(lMlow,lMhigh,params,fg_variances,cov_fg) for lMlow,lMhigh in lM_bins_natural])
+
+    def covariance_MF(self,lM_bins,params,fg_variances,cov_fg = 0):
+        lM_bins_natural = np.log(10**lM_bins)
+        dNdf_all = []
+        dNdg_all = []
+        for lMlow,lMhigh in lM_bins_natural:
+            dNdf_all.append(integrate.quad(self.ddf_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume)
+            dNdg_all.append(integrate.quad(self.ddg_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume)
+        dNdf_all = np.array(dNdf_all)
+        dNdg_all = np.array(dNdg_all)
+        
+        cov_MF = np.zeros((len(lM_bins),len(lM_bins)))
+        f_var = fg_variances[0]
+        g_var = fg_variances[1]
+        for i in range(len(lM_bins)):
+            for j in range(len(lM_bins)):
+                cov_MF[i,j] = dNdf_all[i]*dNdf_all[j]*f_var + dNdg_all[i]*dNdg_all[j]*g_var + cov_fg*(dNdf_all[i]*dNdg_all[j]+dNdf_all[j]*dNdg_all[i])
+                continue # end j
+            continue # end i
+        return cov_MF
 
     def MF_model_all_bins(self,lM_bins,params,redshift):
         if not (redshift == self.redshift):
