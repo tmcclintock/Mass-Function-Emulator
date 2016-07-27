@@ -14,7 +14,8 @@ Ntests = 7
 Nreals = 5
 Nreds = 10
 
-scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
+scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,\
+                              0.645161,0.714286,0.8,0.909091,1.0])
 redshifts = 1./scale_factors - 1.0
 volume = 1.e9 #(1000.)**3 #(Mpc/h)^3
 
@@ -50,7 +51,7 @@ g1_emu.load("saved_emulators/%s"%g1_name)
 """
 Loop over each test box.
 """
-for box_ind in xrange(0,Ntests):
+for box_ind in xrange(0,1):#Ntests):
     cosmo = cosmos[box_ind]
     #Build a cosmo_dict
     h = cosmo[5]/100.
@@ -67,7 +68,7 @@ for box_ind in xrange(0,Ntests):
     f1_test,f1_var = f1_emu.predict_one_point(cosmo)
     g1_test,g1_var = g1_emu.predict_one_point(cosmo)
 
-    for z_index in xrange(0,Nreds):
+    for z_index in xrange(9,Nreds):
         redshift = redshifts[z_index]
         sf = 1./(1.+redshift)
         #Predict f and g
@@ -75,11 +76,8 @@ for box_ind in xrange(0,Ntests):
         f_var = f0_var + (pivot-sf)**2*f1_var
         g_test = g0_test + (pivot-sf)*g1_test
         g_var = g0_var + (pivot-sf)**2*g1_var
-        print sf
-        print f_test, np.sqrt(f_var)
-        print g_test, np.sqrt(g_var)
 
-        for real_ind in xrange(0,Nreals):
+        for real_ind in xrange(0,1):#Nreals):
             
             box = boxname%(box_ind,real_ind)
             data_test = data_path%(box,box,z_index)
@@ -121,4 +119,4 @@ for box_ind in xrange(0,Ntests):
             print "\tcreating NM plot for %s at Z%d or z=%.2f"%(box,z_index,redshift)
             visualize.NM_emulated(lM,NM_data,NM_err,lM,NM_best,NM_best_err,title,savepath)
             print "\tcreating g(sigma) plot for %s at Z%d or z=%.2f"%(box,z_index,redshift)
-            visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)
+            #visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)

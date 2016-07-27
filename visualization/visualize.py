@@ -8,6 +8,23 @@ plt.rc('text',usetex=True, fontsize=20)
 
 show_plots = True
 
+def single_NM_plot(lM_data, NM_data, NM_err):
+    fig,ax = plt.subplots(1,1)
+    
+    ax.errorbar(lM_data,NM_data,yerr=NM_err)
+    ax.set_yscale('log')
+
+    ax.set_xlabel(r"$\log_{10}M\ [M_\odot/h]$")
+    ylims = ax.get_ylim()
+    ax.set_ylim(1e-1,ylims[1])
+    ax.set_ylabel(r"$N(M,z)$")
+    plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
+    if show_plots:
+        plt.show()
+    plt.close()
+
+
+
 def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model):
     f,axarr = plt.subplots(2, sharex = True)
     
