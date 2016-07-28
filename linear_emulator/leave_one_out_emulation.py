@@ -25,8 +25,9 @@ cov_path = data_base+"/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
 build_emulators = False
 examine_emulators = True
-chi2_test = True
-visualize_curves = False
+chi2_test = False
+visualize_curves = True
+output_chi2 = False
 
 chi2_array = np.zeros((Ncosmos,Nreds))
 dof_array = np.zeros((Ncosmos,Nreds))
@@ -69,7 +70,7 @@ build an emulator without that cosmology included.
 Then save the emulator.
 """
 
-for i in xrange(0,Ncosmos):
+for i in xrange(0,1):#Ncosmos):
     if build_emulators:
         cosmos_used = np.delete(cosmos,i,1)
         f0_means_used = np.delete(f0_means,i)
@@ -150,7 +151,7 @@ for i in xrange(0,Ncosmos):
         #Read in the hyperparameter covariances
         param_cov = np.loadtxt("../building_data/tinker_hyperparam_covariances.txt")
 
-        for z_index in xrange(0,Nreds):
+        for z_index in xrange(0,1):#,Nreds):
             print "\tExamining at Z%d"%z_index
             redshift = redshifts[z_index]
             sf = 1./(1.+redshift)
@@ -186,19 +187,30 @@ for i in xrange(0,Ncosmos):
             cov_fg = param_cov[0,2] + (pivot-sf)*(param_cov[1,2]+param_cov[0,3]) + (pivot-sf)**2*param_cov[1,3]
             cov_ff = param_cov[0,0] + (pivot-sf)*param_cov[0,1] + (pivot-sf)**2*param_cov[1,1]
             cov_gg = param_cov[2,2] + (pivot-sf)*param_cov[2,3] + (pivot-sf)**2*param_cov[3,3]
-            #print param_cov
-            #print cov_fg,cov_ff,cov_gg
 
             NM_var = NM_model_obj.var_MF_model_all_bins(lM_bins,best_model,[cov_ff,cov_gg],cov_fg)
             NM_best_err = np.sqrt(NM_var)
-                        
-            title = "Box%03d left out for z=%f"%(i,redshift)
+            
+            title = "Box%03d left out for z=%.2f"%(i,redshift)
 
             if chi2_test:
                 chi2_cosmo = 0
                 cov_emu = NM_model_obj.covariance_MF(lM_bins,best_model,[cov_ff,cov_gg],cov_fg)
-                #print cov.shape, cov_emu.shape
-                #print cov.shape, cov_emu.shape, NM_data.shape, NM_best.shape
+                
+                corr_emu = np.zeros_like(cov_emu)
+                for ii in range(len(cov_emu)):
+                    for jj in range(len(cov_emu)):
+                        corr_emu[ii,jj] = cov_emu[ii,jj]/np.sqrt(cov_emu[ii,ii]*cov_emu[jj,jj])
+                import matplotlib.pyplot as plt
+                plt.pcolor(corr_emu,vmin=-1.0,vmax=1.0)
+                plt.xlim(0,19)
+                plt.ylim(19,0)
+                plt.xlabel("N bin number")
+                plt.ylabel("N bin number")
+                plt.title("z=3.0")
+                plt.colorbar()
+                plt.show()
+
                 cov_full = cov+cov_emu
                 icov = np.linalg.inv(cov_full)
                 diff = NM_data - NM_best
@@ -216,6 +228,6 @@ for i in xrange(0,Ncosmos):
                 visualize.NM_emulated(lM,NM_data,NM_err,lM,NM_best,NM_best_err,title,savepath)
                 #visualize.g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM,lM_bins,NM_data,NM_err,best_model,[f_var,g_var],title,sigma_savepath)
 
-if chi2_test and examine_emulators:
+if output_chi2:
     np.savetxt("txt_files/LOO_chi2.txt",chi2_array)
     np.savetxt("txt_files/LOO_dof.txt",dof_array)

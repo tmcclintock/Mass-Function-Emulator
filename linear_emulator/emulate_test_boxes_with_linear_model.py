@@ -48,6 +48,9 @@ g0_emu.load("saved_emulators/%s"%g0_name)
 f1_emu.load("saved_emulators/%s"%f1_name)
 g1_emu.load("saved_emulators/%s"%g1_name)
 
+#Read in the hyperparameter covariances
+param_cov = np.loadtxt("../building_data/tinker_hyperparam_covariances.txt")
+
 """
 Loop over each test box.
 """
@@ -76,6 +79,10 @@ for box_ind in xrange(0,1):#Ntests):
         f_var = f0_var + (pivot-sf)**2*f1_var
         g_test = g0_test + (pivot-sf)*g1_test
         g_var = g0_var + (pivot-sf)**2*g1_var
+
+        cov_fg = param_cov[0,2] + (pivot-sf)*(param_cov[1,2]+param_cov[0,3]) + (pivot-sf)**2*param_cov[1,3]
+        cov_ff = param_cov[0,0] + (pivot-sf)*param_cov[0,1] + (pivot-sf)**2*param_cov[1,1]
+        cov_gg = param_cov[2,2] + (pivot-sf)*param_cov[2,3] + (pivot-sf)**2*param_cov[3,3]
 
         for real_ind in xrange(0,1):#Nreals):
             
@@ -108,11 +115,11 @@ for box_ind in xrange(0,1):#Ntests):
             #Evaluate the model
             best_model = [1.97,1.0,f_test,g_test]
             NM_best = NM_model_obj.MF_model_all_bins(lM_bins,best_model,redshift)
-            NM_var = NM_model_obj.var_MF_model_all_bins(lM_bins,best_model,[f_var,g_var])
+            NM_var = NM_model_obj.var_MF_model_all_bins(lM_bins,best_model,[cov_ff,cov_gg],cov_fg)
             NM_best_err = np.sqrt(NM_var)
 
             #visualize.NM_plot(lM,NM_data,NM_err,lM,NM_best)
-            title = "%s at z=%f"%(box,redshift)
+            title = "%s at z=%.2f"%(box,redshift)
             savepath = "plots/NM_plots/NM_emulated_%s_Z%d.png"%(box,z_index)
             sigma_savepath = "plots/gsigma_plots/gsigma_emulated_%s_Z%d.png"%(box,z_index)
             

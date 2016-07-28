@@ -6,7 +6,7 @@ Calculate (F - F_emu) where F is f0, f1, g0, g1
 for each cosmology using its LOO emulator.
 """
 
-showplots = True
+showplots = False
 
 import numpy as np
 import sys
@@ -158,6 +158,25 @@ plt.plot(domain,cov_fg(domain,cov))
 plt.ylabel(r"$C(f,g)$")
 plt.xlabel(r"$a$")
 plt.subplots_adjust(left=0.2,bottom=0.15)
+if showplots:
+    plt.show()
+plt.close()
+
+k = -0.5
+CFG = np.zeros((2,2))
+CFG[1,0] = CFG[0,1] = cov[0,2] + k*(cov[1,2]+cov[0,3]) + k**2*cov[1,3]
+CFG[0,0] = cov[0,0] + k*cov[0,1] + k**2*cov[1,1]
+CFG[1,1] = cov[2,2] + k*cov[2,3] + k**2*cov[3,3]
+
+corrfg = np.zeros((2,2))
+for ii in range(2):
+    for jj in range(2):
+        corrfg[ii,jj] = CFG[ii,jj]/np.sqrt(CFG[ii,ii]*CFG[jj,jj])
+        import matplotlib.pyplot as plt
+print corrfg
+plt.pcolor(corrfg,vmin=-1.0,vmax=1.0)
+plt.title("z=3.0")
+plt.colorbar()
 if showplots:
     plt.show()
 plt.close()
