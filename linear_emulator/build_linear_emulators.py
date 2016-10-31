@@ -5,16 +5,15 @@ f0, f1, g0 and g1 and then predicts a cosmology.
 
 import numpy as np
 import sys
-sys.path.insert(0,"../Emulator/")
-import Emulator
+import emulator as Emulator
 
 scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
 redshifts = 1./scale_factors - 1.0
 volume = 1.e9 #(1000.)**3 #(Mpc/h)^3
 
 cosmo_path = "../cosmology_files/building_cosmos_no_z.txt"
-cosmos = np.genfromtxt(cosmo_path).T
-cosmos = np.delete(cosmos,39,1)
+cosmos = np.genfromtxt(cosmo_path)
+cosmos = np.delete(cosmos,39,0)
 #Need to remove last cosmology because it broke
 
 param_names = [r"$\Omega_bh^2$",r"$\Omega_ch^2$",r"$w_0$",r"$n_s$",r"$\log_{10}A_s$",r"$H_0$",r"$N_{eff}$",r"$\sigma_8$"]
@@ -43,6 +42,7 @@ g1_err = np.sqrt(g1_vars)
 
 if build_emulators:
     print "Training Emulators"
+    print cosmos.shape, f0_means.shape
     f0_emu = Emulator.Emulator(name=f0_name,xdata=cosmos,ydata=f0_means,yerr=f0_err)
     f1_emu = Emulator.Emulator(name=f1_name,xdata=cosmos,ydata=f1_means,yerr=f1_err)
     g0_emu = Emulator.Emulator(name=g0_name,xdata=cosmos,ydata=g0_means,yerr=g0_err)

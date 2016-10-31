@@ -138,22 +138,28 @@ class MF_model(object):
         lM_bins_natural = np.log(10**lM_bins)
         return np.array([self.var_MF_model_in_bin(lMlow,lMhigh,params,fg_variances,cov_fg) for lMlow,lMhigh in lM_bins_natural])
 
-    def covariance_MF(self,lM_bins,params,fg_variances,cov_fg = 0):
+    def get_derivs_MF(self,lM_bins,params):
         lM_bins_natural = np.log(10**lM_bins)
-        dNdf_all = []
-        dNdg_all = []
+        dNdf = []
+        dNdg = []
         for lMlow,lMhigh in lM_bins_natural:
-            dNdf_all.append(integrate.quad(self.ddf_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume)
-            dNdg_all.append(integrate.quad(self.ddg_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume)
-        dNdf_all = np.array(dNdf_all)
-        dNdg_all = np.array(dNdg_all)
+            dNdf.append(integrate.quad(self.ddf_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume)
+            dNdg.append(integrate.quad(self.ddg_dndM_at_M,lMlow,lMhigh,args=(params))[0]*self.volume)
+        dNdf = np.array(dNdf)
+        dNdg = np.array(dNdg)
+        return np.array([dNdf,dNdg])
+
+    def covariance_MF(self,lM_bins,params,fg_variances,cov_fg = 0):
+        derivs = self.get_derivs_MF(lM_bins,params)
+        dNdf = derivs[0,:]
+        dNdg = derivs[1,:]
         
         cov_MF = np.zeros((len(lM_bins),len(lM_bins)))
         f_var = fg_variances[0]
         g_var = fg_variances[1]
         for i in range(len(lM_bins)):
             for j in range(len(lM_bins)):
-                cov_MF[i,j] = dNdf_all[i]*dNdf_all[j]*f_var + dNdg_all[i]*dNdg_all[j]*g_var + cov_fg*(dNdf_all[i]*dNdg_all[j]+dNdf_all[j]*dNdg_all[i])
+                cov_MF[i,j] = dNdf[i]*dNdf[j]*f_var + dNdg[i]*dNdg[j]*g_var + cov_fg*(dNdf[i]*dNdg[j]+dNdf[j]*dNdg[i])
                 continue # end j
             continue # end i
         return cov_MF

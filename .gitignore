@@ -1,3 +1,10 @@
+# scratch work
+scratch_work/*
+linear_emulator/txt_files/*
+linear_emulator/covariance_matrix/*
+linear_emulator/param_investigation/*
+linear_emulator/scratch_work/*
+
 # emacs backup files
 *~
 

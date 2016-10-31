@@ -1,7 +1,6 @@
 import numpy as np
 import sys
 sys.path.insert(0,"../NM_model/")
-import NM_model as NM_model_module
 import cosmocalc as cc
 import matplotlib.pyplot as plt
 plt.rc('text',usetex=True, fontsize=20)
@@ -22,7 +21,6 @@ def single_NM_plot(lM_data, NM_data, NM_err):
     if show_plots:
         plt.show()
     plt.close()
-
 
 
 def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model):
@@ -56,17 +54,15 @@ def NM_emulated(lM_data, NM_data, NM_err, lM_emu, NM_emu, NM_emu_err,title,savep
     axarr[0].plot(lM_emu,NM_lower,c='g')
     axarr[0].set_yscale('log')
 
-    #pdiff = 100*(NM_data - NM_emu)/NM_emu
-    #pdiff_upper = 100*(NM_data - NM_upper)/NM_upper
-    #pdiff_lower = 100*(NM_data - NM_lower)/NM_lower
-    #axarr[1].errorbar(lM_data,pdiff,100*NM_err/NM_emu)
-    #axarr[1].plot(lM_data,pdiff_upper,c="g")
-    #axarr[1].plot(lM_data,pdiff_lower,c="g")
+    #resid = (NM_data - NM_emu)/np.sqrt(((0.01*NM_emu)**2+NM_err**2))
+    #resid_err = NM_err/np.sqrt(((0.01*NM_emu)**2+NM_err**2))
+    #resid_upper = (NM_data - NM_upper)/np.sqrt(((0.01*NM_upper)**2+NM_err**2))
+    #resid_lower = (NM_data - NM_lower)/np.sqrt(((0.01*NM_lower)**2+NM_err**2))
 
-    resid = (NM_data - NM_emu)/np.sqrt(((0.01*NM_emu)**2+NM_err**2))
-    resid_err = NM_err/np.sqrt(((0.01*NM_emu)**2+NM_err**2))
-    resid_upper = (NM_data - NM_upper)/np.sqrt(((0.01*NM_upper)**2+NM_err**2))
-    resid_lower = (NM_data - NM_lower)/np.sqrt(((0.01*NM_lower)**2+NM_err**2))
+    resid = (NM_data - NM_emu)/np.sqrt(NM_err**2)
+    resid_err = NM_err/np.sqrt(NM_err**2)
+    resid_upper = (NM_data - NM_upper)/np.sqrt(NM_err**2)
+    resid_lower = (NM_data - NM_lower)/np.sqrt(NM_err**2)
 
     axarr[1].errorbar(lM_data,resid,resid_err,c='b')
     axarr[1].plot(lM_data,resid_upper,c='g')
@@ -77,12 +73,12 @@ def NM_emulated(lM_data, NM_data, NM_err, lM_emu, NM_emu, NM_emu_err,title,savep
     axarr[1].plot(lims,[1,1],"k--",zorder=-1,alpha=0.5)
     axarr[1].plot(lims,[-1,-1],"k--",zorder=-1,alpha=0.5)
 
-    #axarr[1].set_ylim(-50,50)
-    axarr[1].set_ylim(-5,5)
-    axarr[1].set_xlabel(r"$\log_{10}M\ [M_\odot/h]$")
+    axarr[1].set_ylim(-10,10)
+    #axarr[1].set_ylim(-5,5)
+    axarr[1].set_xlabel(r"$\log_{10}M\ [{\rm M_\odot/h}]$")
     axarr[0].set_ylabel(r"$N(M,z)$")
-    #axarr[1].set_ylabel(r"$\%$ Diff")
-    axarr[1].set_ylabel(r"$\frac{N-N_m}{\sqrt{(0.01N_m)^2+\Delta N^2}}$")
+    #axarr[1].set_ylabel(r"$\frac{N-N_m}{\sqrt{(0.01N_m)^2+\sigma_N^2}}$")
+    axarr[1].set_ylabel(r"$\frac{N-N_m}{\sigma_N}$")
 
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
     plt.gcf().savefig(savepath)
