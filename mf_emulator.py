@@ -31,8 +31,15 @@ class mf_emulator(object):
     as well as arrays of f0, f1, g0 and g1
     values, train the emulators
     """
-    def train(self):
-        """incomplete"""
+    def train(self,cosmologies,training_data):
+        """
+        Name:
+            train
+        Purpose:
+            Train each of the emulators that handle the incoming parameters
+        Input:
+            cosmologies (2D array): 
+        """
         self.trained = True
         return
     

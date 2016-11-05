@@ -7,8 +7,8 @@ sys.path.insert(0,"../NM_model/")
 sys.path.insert(0,"../Emulator/")
 sys.path.insert(0,"../visualization/")
 import visualize
-import Emulator
-import NM_model as NM_model_module
+import emulator as Emulator
+import tinker_mass_function as NM_model_module
 
 Nfiles=100
 
@@ -18,9 +18,10 @@ redshifts = 1./scale_factors - 1.0
 volume = 400**3*(1000.**3/1050.**3) #(Mpc/h)^3
 #Mpart = 6.583e8 #Msun/h
 
-boxname = "fox"
+#boxname = "fox"
+boxname = "chinchilla"
 
-data_base = "/home/tmcclintock/Desktop/All_NM_data/fox_NM_data/"
+data_base = "/home/tmcclintock/Desktop/All_NM_data/%s_NM_data/"%boxname
 data_path = data_base+"full_mf_data/%s_full_%d.txt"
 cov_path = data_base+"/covariances/%s_cov_%d.txt"
 
@@ -51,16 +52,31 @@ param_cov = np.loadtxt("../building_data/mcmc_tinker_hyperparam_covariances_v2.t
 """
 Loop over each test box.
 """
-for i in range(0,4):
+for i in range(0,8):
     box_index = np.array([45,70,80,83,85,90,98,99])[i]
     #Build a cosmo_dict
-    h = 0.670435
+    """
+    Fox cosmology:
+    """
+    """h = 0.670435
     Om = 0.31834
     Ob = 0.049017
     sigma8 = 0.83495
     w0 = -1.0
     ns = 0.96191
     ln10As = np.log(2.1e-9*1e10)
+    Neff = 3.046 #Totally random and made up
+    """
+    """
+    chinchilla cosmology:
+    """
+    h = 0.7
+    Om = 0.286
+    Ob = 0.047
+    sigma8 = 0.82
+    w0 = -1.0
+    ns = 0.96
+    ln10As = 2.99 #Approximately, not sure
     Neff = 3.046 #Totally random and made up
     cosmo_dict = {"om":Om,"ob":Ob,"ol":1-Om,\
                       "ok":0.0,"h":h,"s8":sigma8,\
@@ -115,12 +131,14 @@ for i in range(0,4):
     print bounds
 
     #Create the model object
-    NM_model_obj = NM_model_module.MF_model(cosmo_dict,bounds,volume,redshift)
+    NM_model_obj = NM_model_module.MF_model(cosmo_dict,redshift)
+    NM_model_obj.set_parameters(1.97,1.0,f_test,g_test)
 
     #Evaluate the model
     best_model = [1.97,1.0,f_test,g_test]
-    NM_best = NM_model_obj.MF_model_all_bins(lM_bins,best_model,redshift)
-    cov_emu = NM_model_obj.covariance_MF(lM_bins,best_model,[cov_ff,cov_gg],cov_fg)
+    n_best = NM_model_obj.n_in_bins(lM_bins)
+    NM_best = n_best * volume
+    cov_emu = NM_model_obj.covariance_in_bins(lM_bins,[cov_ff,cov_gg],cov_fg)*volume**2
     NM_best_err = np.sqrt(np.diagonal(cov_emu))
     
     #visualize.NM_plot(lM,NM_data,NM_err,lM,NM_best)

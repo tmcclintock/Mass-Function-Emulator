@@ -31,11 +31,17 @@ def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model):
     axarr[0].set_yscale('log')
 
     pdiff = 100*(NM_data - NM_model)/NM_model
-    axarr[1].errorbar(lM_data,pdiff,100*NM_err/NM_model)
-    axarr[1].set_ylim(-50,50)
-    axarr[1].set_xlabel(r"$\log_{10}M\ [M_\odot/h]$")
+    pde = 100*NM_err/NM_model
+    axarr[1].errorbar(lM_data,pdiff,pde,marker='o')
+    ylim_max = max(np.fabs(pdiff)) + max(np.fabs(pde))
+    xlim = axarr[1].get_xlim()
+    ylim = [-ylim_max,ylim_max]
+    axarr[1].plot(xlim,[0,0],"k--")
+    axarr[1].set_xlim(xlim)
+    axarr[1].set_ylim(ylim)
+    axarr[1].set_xlabel(r"$\log_{10}M\ [{\rm M}_\odot/h]$")
     axarr[0].set_ylabel(r"$N(M,z)$")
-    axarr[1].set_ylabel(r"$\%$ Diff")
+    axarr[1].set_ylabel(r"$\%\ {\rm Diff}$")
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
     if show_plots:
         plt.show()
