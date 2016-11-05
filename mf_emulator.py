@@ -97,11 +97,10 @@ if __name__=="__main__":
     covs = np.load("training_data/txt_files/line_covs.npy")
     print lines.shape, covs.shape
     N_params = len(lines[0])
-    data = np.ones((N_params*2,N_cosmologies))
+    data = np.ones((N_cosmologies,N_params*2))
     for i in range(N_params):
-        data[i*2] = lines[:,i]
-        data[i*2+1] = np.sqrt(covs[:,i/2,i%2,i%2]) # sorry...
-    data = data.T
+        data[:,i*2] = lines[:,i]
+        data[:,i*2+1] = np.sqrt(covs[:,i/2,i%2,i%2]) # sorry...
     print data.shape
 
     training_cosmologies = all_cosmologies[1:]
