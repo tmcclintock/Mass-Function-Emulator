@@ -17,7 +17,7 @@ scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,
 redshifts = 1./scale_factors - 1.0
 volume = 1.e9 #(1000.)**3 #(Mpc/h)^3
 
-data_base = "/home/tmcclintock/Desktop/Mass_Function_Data/"#BACKUP_20Mbins/"
+data_base = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/"#BACKUP_20Mbins/"
 data_path = data_base+"/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
 cov_data_path = data_base+"/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
@@ -96,7 +96,7 @@ build an emulator without that cosmology included.
 Then save the emulator.
 """
 
-for i in xrange(36,37):#,Ncosmos,1):
+for i in xrange(0,1):#36,37):#,Ncosmos,1):
     if build_emulators:
         cosmos_used = np.delete(cosmos,i,0)
         f0_means_used = np.delete(f0_means,i)
@@ -160,8 +160,8 @@ for i in xrange(36,37):#,Ncosmos,1):
         f1_test,f1_var = f1_emu.predict_one_point(cosmo_predicted)
         g1_test,g1_var = g1_emu.predict_one_point(cosmo_predicted)
 
-        print f0_real,g0_real,f1_real,g1_real
-        print f0_test,g0_test,f1_test,g1_test
+        print "reals: ",f0_real,f1_real,g0_real,g1_real
+        print "preds: ",f0_test,f1_test,g0_test,g1_test
 
         f0_predicted.append(f0_test)
         f1_predicted.append(f1_test)
@@ -191,9 +191,9 @@ for i in xrange(36,37):#,Ncosmos,1):
                           "ns":ns,"w0":w0,"wa":0.0}
 
         #Read in the hyperparameter covariances
-        param_cov = np.loadtxt("../building_data/mcmc_tinker_hyperparam_covariances_v2.txt")
+        param_cov = np.loadtxt("../old_code/old_building_data/mcmc_tinker_hyperparam_covariances_v2.txt")
 
-        for z_index in xrange(5,6):#,Nreds,1):
+        for z_index in xrange(9,10):#5,6):#,Nreds,1):
             print "\tExamining at Z%d"%z_index
             redshift = redshifts[z_index]
             sf = 1./(1.+redshift)
@@ -226,6 +226,9 @@ for i in xrange(36,37):#,Ncosmos,1):
             #Evaluate the model
             n_model = NM_model_obj.n_in_bins(lM_bins)
             NM_model = n_model*volume
+
+            for j in range(len(NM_data)):
+                print "Bin %d: %.1f +- %.1f\tvs\t%.1f"%(j,NM_data[j],NM_err[j],NM_model[j])
 
             #Get out the derivatives
             derivs =NM_model_obj.derivs_in_bins(lM_bins)
