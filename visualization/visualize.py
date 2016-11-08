@@ -23,7 +23,7 @@ def single_NM_plot(lM_data, NM_data, NM_err):
     plt.close()
 
 
-def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model):
+def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model,title=None):
     f,axarr = plt.subplots(2, sharex = True)
     
     axarr[0].errorbar(lM_data,NM_data,yerr=NM_err)
@@ -43,6 +43,7 @@ def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model):
     axarr[0].set_ylabel(r"$N(M,z)$")
     axarr[1].set_ylabel(r"$\%\ {\rm Diff}$")
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
+    if title is not None: axarr[0].set_title(title)
     if show_plots:
         plt.show()
     plt.close()

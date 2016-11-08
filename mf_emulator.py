@@ -2,7 +2,7 @@
 This contains an actual mass function emulator
 that emulates the tinker mass function.
 """
-import emulator
+import emulator, sys
 import numpy as np
 import tinker_mass_function as TMF
 
@@ -85,7 +85,8 @@ class mf_emulator(object):
         self.scale_factor = 1./(1+redshift)
         predictions = self.predict_parameters(cosmology)
         params, variances = predictions[:,0], predictions[:,1]
-        f0,f1,g0,g1 = params
+        f0,f1,g0,g1 =  [ 0.4349943, 0.13878528, 1.18302696, -0.03028451]#the real params
+        f0,f1,g0,g1 =  params
         d,e = 1.97,1.0
         f = f0 + (self.scale_factor-0.5)*f1
         g = g0 + (self.scale_factor-0.5)*g1
@@ -101,19 +102,18 @@ if __name__=="__main__":
     N_cosmologies = len(all_cosmologies)
 
     #Read in the input data
-    lines = np.loadtxt("./test_data/lines.txt")
-    covs = np.load("./test_data/line_covs.npy")
-    data = np.ones((N_cosmologies,len(lines[0]),2))
-    for i in range(len(lines[0])):
-        data[:,i,0] = lines[:,i]
-        data[:,i,1] = np.sqrt(covs[:,i/2,i%2,i%2]) # sorry...
-        continue
+    means = np.loadtxt("./test_data/mean_models.txt")
+    variances = np.loadtxt("./test_data/var_models.txt")
+    data = np.ones((N_cosmologies,len(means[0]),2)) #Last column is for mean/erros
+    data[:,:,0] = means
+    data[:,:,1] = np.sqrt(variances)
     
     #Pick out the training data
-    training_cosmologies = all_cosmologies[1:]
-    training_data = data[1:]
-    test_cosmo = all_cosmologies[0]
-    test_data = data[0]
+    box_index, z_index = 0, 5
+    test_cosmo = all_cosmologies[box_index]
+    test_data = data[box_index]
+    training_cosmologies = np.delete(all_cosmologies,box_index,0)
+    training_data = np.delete(data,box_index,0)
 
     #Train
     mf_emulator = mf_emulator("test")
@@ -121,24 +121,44 @@ if __name__=="__main__":
 
     #Predict the TMF parameters
     predicted = mf_emulator.predict_parameters(test_cosmo)
-    f = predicted[0]+0.5*predicted[1]
-    g = predicted[2]+0.5*predicted[3]
-    print "reals: ",test_data[:,0]
-    print "preds: ",predicted[:,0]
+    print "real params: ",test_data[:,0]
+    print "pred params: ",predicted[:,0]
 
     #Read in the test mass function
-    MF_data = np.genfromtxt("./test_data/Box000_full_Z9.txt")
+    MF_data = np.genfromtxt("./test_data/Box%03d_full_Z%d.txt"%(box_index,z_index))
     lM_bins = MF_data[:,:2]
     N_data = MF_data[:,2]
-    N_data_err = np.sqrt(np.diagonal(np.genfromtxt("./test_data/Box000_cov_Z9.txt")))
+    cov_data = np.genfromtxt("./test_data/Box%03d_cov_Z%d.txt"%(box_index,z_index))
+    N_err = np.sqrt(np.diagonal(cov_data))
+
+    #Scale factors and redshifts
+    scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
+    redshifts = 1./scale_factors - 1.0
 
     #Predict the TMF
     volume = 1050.**3 #[Mpc/h]^3
-    n = mf_emulator.predict_mass_function(test_cosmo,redshift=0.0,lM_bins=lM_bins)
+    n = mf_emulator.predict_mass_function(test_cosmo,redshift=redshifts[z_index],lM_bins=lM_bins)
     N_emu = n*volume
 
+    chi2o = 0.0
+    icov = np.linalg.inv(cov_data)
+    for i in xrange(2,len(N_data)):
+        for j in xrange(2,len(N_data)):
+            Xi = N_data[i]-N_emu[i]
+            Xj = N_data[j]-N_emu[j]
+            chi2o += Xi*icov[i,j]*Xj
+    print chi2o
+        
+    chi2 = np.dot((N_data-N_emu),np.dot(np.linalg.inv(cov_data),(N_data-N_emu)))
+    sigdif = (N_data-N_emu)/N_err
     for i in range(len(N_data)):
-        print "Bin %d: %.1f +- %.1f\tvs\t%.1f"%(i,N_data[i],N_data_err[i],N_emu[i])
+        print "Bin %d: %.1f +- %.1f\tvs\t%.1f  at  %f"%(i,N_data[i],N_err[i],N_emu[i],sigdif[i])
+        
+    print "chi2 = %f"%chi2
 
+    sys.path.insert(0,'./visualization/')
+    import visualize
+    lM = np.log10(np.mean(10**lM_bins,1))
+    visualize.NM_plot(lM,N_data,N_err,lM,N_emu,title="LOO Box%03d at z=%.2f"%(box_index,redshifts[z_index]))
 
 
