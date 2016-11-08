@@ -85,7 +85,7 @@ class mf_emulator(object):
         self.scale_factor = 1./(1+redshift)
         predictions = self.predict_parameters(cosmology)
         params, variances = predictions[:,0], predictions[:,1]
-        f0,f1,g0,g1 =  [ 0.4349943, 0.13878528, 1.18302696, -0.03028451]#the real params
+        f0,f1,g0,g1 =  [ 0.4349943, 0.13878528, 1.18302696, -0.03028451]#the real params for Box000 if I want to test them
         f0,f1,g0,g1 =  params
         d,e = 1.97,1.0
         f = f0 + (self.scale_factor-0.5)*f1
