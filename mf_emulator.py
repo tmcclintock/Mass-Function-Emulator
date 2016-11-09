@@ -109,7 +109,7 @@ if __name__=="__main__":
     data[:,:,1] = np.sqrt(variances)
     
     #Pick out the training data
-    box_index, z_index = 0, 5
+    box_index, z_index = 0, 9
     test_cosmo = all_cosmologies[box_index]
     test_data = data[box_index]
     training_cosmologies = np.delete(all_cosmologies,box_index,0)
@@ -159,6 +159,6 @@ if __name__=="__main__":
     sys.path.insert(0,'./visualization/')
     import visualize
     lM = np.log10(np.mean(10**lM_bins,1))
-    visualize.NM_plot(lM,N_data,N_err,lM,N_emu,title="LOO Box%03d at z=%.2f"%(box_index,redshifts[z_index]))
+    visualize.NM_plot(lM,N_data,N_err,lM,N_emu,title=r"LOO Box%03d at z=%.2f $\chi^2=%.2f$"%(box_index,redshifts[z_index],chi2))
 
 

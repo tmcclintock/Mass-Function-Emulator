@@ -3,7 +3,8 @@ import sys
 sys.path.insert(0,"../NM_model/")
 import cosmocalc as cc
 import matplotlib.pyplot as plt
-#plt.rc('text',usetex=True, fontsize=20)
+#plt.rc(usetex=True)
+plt.rc('text', fontsize=20)
 
 show_plots = True
 
