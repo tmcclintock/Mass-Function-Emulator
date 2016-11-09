@@ -1,5 +1,5 @@
 import numpy as np
-import sys
+import sys, pickle
 sys.path.insert(0,"../")
 import mf_emulator as MFE
 
@@ -34,6 +34,15 @@ data[:,:,1] = np.sqrt(variances)
 #Create an array with chi2
 chi2_array = np.zeros((N_cosmos,N_z))
 
+#Save all the predictions in arrays
+param_array = np.zeros((N_cosmos,4))
+N_array = []
+dNdf_array = []
+dNdg_array = []
+dNdfxdNdf_array = []
+dNdgxdNdg_array = []
+dNdfxdNdg_array = []
+
 #Loop over boxes and redshifts
 box_low, box_high = 0,N_cosmos
 z_low, z_high = 0,N_z
@@ -49,6 +58,7 @@ for i in xrange(box_low,box_high):
 
     #Predict the TMF parameters
     predicted = mfe.predict_parameters(test_cosmo)
+    param_array[i] = predicted[:,0]
     print "\nLOO%d real params: "%i,test_data[:,0]
     print "LOO%d pred params: "%i,predicted[:,0]
 
@@ -61,9 +71,25 @@ for i in xrange(box_low,box_high):
         N_err = np.sqrt(np.diagonal(cov_data))
         n = mfe.predict_mass_function(test_cosmo,redshift=redshifts[j],lM_bins=lM_bins)
         N_emu = n*volume
+        dNdf,dNdg = mfe.MF_model.derivs_in_bins(lM_bins)*volume
         chi2 = np.dot((N_data-N_emu),np.dot(np.linalg.inv(cov_data),(N_data-N_emu)))
         chi2_array[i,j] = chi2
 
+        #Append to the arrays
+        N_array.append(N_data)
+        dNdf_array.append(dNdf)
+        dNdg_array.append(dNdg)
+        dNdfxdNdf_array.append(np.outer(dNdf,dNdf))
+        dNdgxdNdg_array.append(np.outer(dNdg,dNdg))
+        dNdfxdNdg_array.append(np.outer(dNdf,dNdg))
+
+
     print chi2_array[i]
 
-np.savetxt("chi2_array.txt",chi2_array)
+#np.savetxt("chi2_array.txt",chi2_array)
+pickle.dump(N_array,open("N_array.p","wb"))
+pickle.dump(dNdf_array,open("dNdf_array.p","wb"))
+pickle.dump(dNdg_array,open("dNdg_array.p","wb"))
+pickle.dump(dNdfxdNdf_array,open("dNdfxdNdf_array.p","wb"))
+pickle.dump(dNdgxdNdg_array,open("dNdgxdNdg_array.p","wb"))
+pickle.dump(dNdfxdNdg_array,open("dNdfxdNdg_array.p","wb"))
