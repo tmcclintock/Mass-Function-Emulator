@@ -1,3 +1,15 @@
+"""
+This file creates the LOO data. It works as follows:
+
+- For a given cosmology (box) build a MF emulator with it included
+- Predict the MF for that box at each redshift and store this (N_array)
+- Predict the derivative of the MF for that box at each redshift (dNdf, dNdg)
+   * these are saved as products, since these will be used in computing covariance matrices
+
+The N_array and dNdi variables are N_boxes*N_z X N_bins in shape.
+The dNdixdNdj_array variables are N_boxes*N_z X N_bins X N_bins in shape.
+These are pickled for later loading.
+"""
 import numpy as np
 import sys, pickle
 sys.path.insert(0,"../")
@@ -82,7 +94,6 @@ for i in xrange(box_low,box_high):
         dNdfxdNdf_array.append(np.outer(dNdf,dNdf))
         dNdgxdNdg_array.append(np.outer(dNdg,dNdg))
         dNdfxdNdg_array.append(np.outer(dNdf,dNdg))
-
 
     print chi2_array[i]
 
