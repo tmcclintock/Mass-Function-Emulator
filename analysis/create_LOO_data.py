@@ -48,7 +48,9 @@ chi2_array = np.zeros((N_cosmos,N_z))
 
 #Save all the predictions in arrays
 param_array = np.zeros((N_cosmos,4))
-N_array = []
+N_data_array = []
+cov_data_array = []
+N_emu_array = []
 dNdf_array = []
 dNdg_array = []
 dNdfxdNdf_array = []
@@ -88,7 +90,9 @@ for i in xrange(box_low,box_high):
         chi2_array[i,j] = chi2
 
         #Append to the arrays
-        N_array.append(N_data)
+        N_data_array.append(N_data)
+        N_emu_array.append(N_emu)
+        cov_data_array.append(cov_data)
         dNdf_array.append(dNdf)
         dNdg_array.append(dNdg)
         dNdfxdNdf_array.append(np.outer(dNdf,dNdf))
@@ -98,7 +102,9 @@ for i in xrange(box_low,box_high):
     print chi2_array[i]
 
 #np.savetxt("chi2_array.txt",chi2_array)
-pickle.dump(N_array,open("N_array.p","wb"))
+pickle.dump(N_data_array,open("N_data_array.p","wb"))
+pickle.dump(N_emu_array,open("N_emu_array.p","wb"))
+pickle.dump(cov_data_array,open("cov_data_array.p","wb"))
 pickle.dump(dNdf_array,open("dNdf_array.p","wb"))
 pickle.dump(dNdg_array,open("dNdg_array.p","wb"))
 pickle.dump(dNdfxdNdf_array,open("dNdfxdNdf_array.p","wb"))

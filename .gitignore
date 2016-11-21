@@ -5,6 +5,7 @@ linear_emulator/covariance_matrix/*
 linear_emulator/param_investigation/*
 linear_emulator/scratch_work/*
 analysis/*.p
+analysis/output_files/chains/*
 
 # emacs backup files
 *~
