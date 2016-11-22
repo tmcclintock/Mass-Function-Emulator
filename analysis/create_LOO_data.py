@@ -98,6 +98,11 @@ for i in xrange(box_low,box_high):
         dNdfxdNdf_array.append(np.outer(dNdf,dNdf))
         dNdgxdNdg_array.append(np.outer(dNdg,dNdg))
         dNdfxdNdg_array.append(np.outer(dNdf,dNdg))
+        print N_data
+        print N_emu
+        print dNdf
+        print dNdg
+        sys.exit()
 
     print chi2_array[i]
 

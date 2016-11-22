@@ -32,7 +32,7 @@ class mf_emulator(object):
                           "ns":ns,"w0":w0,"wa":0.0}
         self.cosmology = cosmology
         self.cosmo_dict = cosmo_dict
-        self.MF_model = TMF.MF_model(cosmo_dict,self.redshift,l10M_bounds)
+        self.MF_model = TMF.MF_model(cosmo_dict,self.redshift,l10M_bounds,use_numerical_derivatives=True)
         self.redshift = redshift
         self.scale_factor = 1./(1.+self.redshift)
         self.l10M_bounds = l10M_bounds
