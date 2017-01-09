@@ -21,7 +21,7 @@ def lnlike(params,NM_model_array,NM_data_array,cov_data_array,\
     lnl_array = np.zeros((Ncosmos))
     #Loop over boxes
     for i in xrange(0,len(Zinds)):
-        j = Zinds[i]
+        j = int(Zinds[i])
         index = i*Nreds+j
         NM_data  = NM_data_array[index]
         NM_model = NM_model_array[index]
@@ -66,8 +66,8 @@ def lnlike(params,NM_model_array,NM_data_array,cov_data_array,\
     return -0.5*np.sum(lnl_array)
 
 def lnprior(params):
-    if any(params[:4] > 0.0): return -np.inf 
-    if any(params[:4] < -10): return -np.inf 
+    if any(params[:4] > -2.0): return -np.inf 
+    if any(params[:4] < -12): return -np.inf 
     #if any(params[:4] < 0.0): return -np.inf #if not using logs
     if any(np.fabs(params[4:]) > 1.0):  return -np.inf
     return np.sum(params[:4]) #if using logs

@@ -7,9 +7,9 @@ import visualize
 import training_likelihoods as TL
 
 #Choose which modes to run
-run_test = False
-run_best_fit = False
-run_mcmc = False
+run_test = True
+run_best_fit = True
+run_mcmc = True
 run_comparisons = True
 see_corner = True
 
@@ -35,7 +35,7 @@ data_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/full_mf_data
 cov_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
 #Create the output files
-from_scratch = False
+from_scratch = True
 if from_scratch:
     best_fit_models = np.zeros((N_boxes,N_parameters))
     np.savetxt("txt_files/best_fit_models.txt",best_fit_models)
@@ -49,7 +49,7 @@ else:
     var_models = np.loadtxt("txt_files/var_models.txt")
 
 #Loop over cosmologies and redshifts
-box_lo,box_hi = 0,N_boxes
+box_lo,box_hi = 1,N_boxes
 z_lo,z_hi = 0,N_z #Which redshifts to plot
 for i in xrange(box_lo,box_hi):
     #Get in the cosmology and create a cosmo_dict
@@ -142,7 +142,7 @@ for i in xrange(box_lo,box_hi):
             for ind in range(len(N)):
                 print "Bin %d: %.1f +- %.1f\tvs\t%.1f  at  %f"%(ind,N_data_array[j][ind],N_err[ind],N[ind],sigdif[ind])
 
-            visualize.NM_plot(lM_array[j],N_data_array[j],N_err,lM_array[j],N,title="Box%03d at z=%.2f"%(i,redshifts[j]))
+            #visualize.NM_plot(lM_array[j],N_data_array[j],N_err,lM_array[j],N,title="Box%03d at z=%.2f"%(i,redshifts[j]))
 
     if see_corner:
         fullchain = np.loadtxt("chains/Box%03d_chain.txt"%(i))

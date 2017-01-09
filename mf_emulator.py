@@ -108,8 +108,8 @@ if __name__=="__main__":
     data[:,:,0] = means
     data[:,:,1] = np.sqrt(variances)
     
-    #Pick out the training data
-    box_index, z_index = 0, 9
+    #Pick out the training/testing data
+    box_index, z_index = 0, 0
     test_cosmo = all_cosmologies[box_index]
     test_data = data[box_index]
     training_cosmologies = np.delete(all_cosmologies,box_index,0)
@@ -139,21 +139,11 @@ if __name__=="__main__":
     volume = 1050.**3 #[Mpc/h]^3
     n = mf_emulator.predict_mass_function(test_cosmo,redshift=redshifts[z_index],lM_bins=lM_bins)
     N_emu = n*volume
-
-    chi2o = 0.0
-    icov = np.linalg.inv(cov_data)
-    for i in xrange(2,len(N_data)):
-        for j in xrange(2,len(N_data)):
-            Xi = N_data[i]-N_emu[i]
-            Xj = N_data[j]-N_emu[j]
-            chi2o += Xi*icov[i,j]*Xj
-    print chi2o
         
     chi2 = np.dot((N_data-N_emu),np.dot(np.linalg.inv(cov_data),(N_data-N_emu)))
     sigdif = (N_data-N_emu)/N_err
     for i in range(len(N_data)):
         print "Bin %d: %.1f +- %.1f\tvs\t%.1f  at  %f"%(i,N_data[i],N_err[i],N_emu[i],sigdif[i])
-        
     print "chi2 = %f"%chi2
 
     sys.path.insert(0,'./visualization/')

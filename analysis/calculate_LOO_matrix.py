@@ -19,15 +19,15 @@ import matplotlib.pyplot as plt
 
 #Flow control
 do_single_test = False
-do_maximization = True
-do_MCMC = True
-do_analysis = True
+do_maximization = False
+do_MCMC = False
+do_analysis = False
 average_chains = False
-make_corrs = False
+make_corrs = True
 
 #MCMC information
-N_trials = 1
-N_dim = 10
+N_trials = 100 #number of trials within a single MCMC step
+N_dim = 10 #Number of free parameters
 N_walkers = 3*N_dim #2*N_dim minimum
 N_steps = 10000
 N_burn = 5000
@@ -53,7 +53,7 @@ redshifts = 1./scale_factors - 1.0
 k = scale_factors - 0.5 #f = f0 + k*f1
 
 #Initial parameter guess
-Vscale = 1e-6 #Scale of the variances
+Vscale = 1e-3 #Scale of the variances
 lVs = np.log(Vscale)
 initial_parameter_guess = np.array((lVs,lVs,lVs,lVs,0.,0.,0.,0.,0.,0.)) #if using logs
 #initial_parameter_guess = np.array((Vscale,Vscale,Vscale,Vscale,0.,0.,0.,0.,0.,0.)) #otherwise
@@ -99,7 +99,7 @@ if do_MCMC:
         pos = np.zeros((N_walkers,N_dim))
         for i in range(N_walkers):
             pos[i] += start
-            pos[i,:4] += np.random.randn(4)*start[:4]
+            pos[i,:4] += np.random.randn(4)
             for j in xrange(4,N_dim):
                 pos[i,j] = start[j] + np.random.randn()*1e-1
                 if pos[i,j] > 1.0: pos[i,j] -= 1.0
@@ -132,7 +132,7 @@ if do_analysis:
         chain = full_chain[:,N_burn:].reshape(int(N_walkers*(N_steps-N_burn)),N_dim)
         print chain.shape
         fig = corner.corner(chain,labels=names,plot_datapoints=False)
-        plt.show()
+        #plt.show()
         fig.savefig("output_files/chains/fig_chain_trial%d.png"%trial)
         plt.close()
 
@@ -161,7 +161,7 @@ if average_chains:
         plt.xlabel("Trial number",fontsize=28)
         plt.subplots_adjust(bottom=0.15)
         plt.gcf().savefig("output_files/slide_plots/%s_vs_trial.png"%slidenames[i])
-        #plt.show()
+        plt.show()
         plt.close()
 
 if make_corrs:
@@ -213,14 +213,17 @@ if make_corrs:
     cov[1,2] = cov[2,1] = Rf0g0*np.sqrt(Cf1f1*Cg0g0)
     cov[1,3] = cov[3,1] = Rf0g1*np.sqrt(Cf1f1*Cg1g1)
     cov[2,3] = cov[3,2] = Rg0g1*np.sqrt(Cg0g0*Cg1g1)
-    #view_corr(cov,"")
+    #view_corr(cov,"individual_params")
 
-    kz = k[5]
+    ind = 2
+    kz = k[ind]
+    red = redshifts[ind]
+    print "At z = %.2f"%red
     cov_fg = np.zeros((2,2))
     cov_fg[0,0] = cov[0,0]+kz*cov[0,1] + kz**2*cov[1,1] #f,f
     cov_fg[1,1] = cov[2,2]+kz*cov[2,3] + kz**2*cov[3,3] #g,g
     cov_fg[0,1] = cov_fg[1,0] = cov[0,2] + kz*(cov[0,3]+cov[1,2]) + kz**2*cov[1,3]
-    #view_corr(cov_fg,"")
+    #view_corr(cov_fg,"tinker params at z=%.2f"%red)
 
     dNdfxdNdf = dNdfxdNdf_array[0]
     dNdgxdNdg = dNdgxdNdg_array[0]
@@ -228,13 +231,19 @@ if make_corrs:
     cov_model = dNdfxdNdf*cov_fg[0,0] + dNdgxdNdg*cov_fg[1,1] + (dNdfxdNdg + dNdfxdNdg.T)*cov_fg[0,1]
     
     print cov_fg
+    print dNdfxdNdf[0,1]*cov_fg[0,0], dNdgxdNdg[0,1]*cov_fg[1,1],(dNdfxdNdg[0,1] + dNdfxdNdg.T[0,1])*cov_fg[0,1]
+    print dNdfxdNdf[0,0]*cov_fg[0,0], dNdgxdNdg[0,0]*cov_fg[1,1],(dNdfxdNdg[0,0] + dNdfxdNdg.T[0,0])*cov_fg[0,1]
+    print dNdfxdNdf[1,1]*cov_fg[0,0], dNdgxdNdg[1,1]*cov_fg[1,1],(dNdfxdNdg[1,1] + dNdfxdNdg.T[1,1])*cov_fg[0,1]
+
+    print ""
+    print np.diag(cov_model)
 
     def view_corr2(cov,title,x):
         corr = np.zeros_like(cov)
         for i in range(len(cov)):
             for j  in range(len(cov[i])):
+                #print cov[i,j],cov[i,i],cov[j,j]
                 corr[i,j] = cov[i,j]/np.sqrt(cov[i,i]*cov[j,j])
-        #print corr
         plt.pcolor(np.flipud(corr),vmin=-1.0,vmax=1.0)
         ax = plt.gca()
         step = 1
@@ -250,14 +259,18 @@ if make_corrs:
         plt.colorbar()
         #plt.savefig("./figures/"+title+".png")
         plt.show()
-    base = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/"
+        return corr
+    base = "/home/tmcclintock/Desktop/all_MF_data/BACKUP_building_MF_data/"
     datapath = base+"/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
     covpath = base+"/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
-    MF_data = np.genfromtxt(datapath%(0,0,5))
-    cov_data = np.genfromtxt(covpath%(0,0,5))
+    MF_data = np.genfromtxt(datapath%(0,0,ind))
+    cov_data = np.genfromtxt(covpath%(0,0,ind))
     lM_bins = MF_data[:,:2]
     lM = np.mean(lM_bins,1)
-    print cov_data[0]
+    for i in range(len(cov_data)):
+        print "%d\t%.2e\t%.2e\t%.2f"%(i,cov_data[0,i],cov_model[0,i],cov_data[0,i]/cov_model[0,i])
+    #print cov_data[0]
     print cov_model[0]
     view_corr2(cov_data,r"$R_{JK}$",lM)
     view_corr2(cov_model,r"$R_{p,p}$",lM)
+    view_corr2(cov_data+cov_model,r"$R_{\rm total}$",lM)
