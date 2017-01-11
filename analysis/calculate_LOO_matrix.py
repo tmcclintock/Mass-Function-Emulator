@@ -20,10 +20,10 @@ import matplotlib.pyplot as plt
 #Flow control
 do_single_test = False
 do_maximization = False
-do_MCMC = False
-do_analysis = False
+do_MCMC = True
+do_analysis = True
 average_chains = False
-make_corrs = True
+make_corrs = False
 
 #MCMC information
 N_trials = 100 #number of trials within a single MCMC step
@@ -79,7 +79,8 @@ if do_single_test:
 if do_maximization:
     for trial in xrange(0,N_trials):
         z_indices = all_z_indices[trial]
-        print z_indices
+        print "Maximizing Trial %d: "%trial
+        print "Using: ",z_indices
         nll = lambda *args:-lnprob(*args)
         result = op.minimize(nll,initial_parameter_guess,\
                                  args=(N_emu_array,\
@@ -99,7 +100,7 @@ if do_MCMC:
         pos = np.zeros((N_walkers,N_dim))
         for i in range(N_walkers):
             pos[i] += start
-            pos[i,:4] += np.random.randn(4)
+            pos[i,:4] += np.random.randn(4)*1e-1
             for j in xrange(4,N_dim):
                 pos[i,j] = start[j] + np.random.randn()*1e-1
                 if pos[i,j] > 1.0: pos[i,j] -= 1.0
@@ -107,12 +108,8 @@ if do_MCMC:
                 continue
             continue
         
-        sampler = emcee.EnsembleSampler(N_walkers,N_dim,lnprob,\
-                                            args=(N_emu_array,\
-                                                      N_data_array,cov_data_array,\
-                                                      dNdfxdNdf_array,dNdgxdNdg_array,\
-                                                      dNdfxdNdg_array,k,\
-                                                      N_cosmos,N_z,z_indices))
+        sampler_args = (N_emu_array,N_data_array,cov_data_array,dNdfxdNdf_array,dNdgxdNdg_array,dNdfxdNdg_array,k,N_cosmos,N_z,z_indices)
+        sampler = emcee.EnsembleSampler(N_walkers,N_dim,lnprob,args=sampler_args)
         sampler.run_mcmc(pos,N_steps)
         full_chain = sampler.chain
         chain = full_chain[:,N_burn:].reshape(int(N_walkers*(N_steps-N_burn)),N_dim)
@@ -126,11 +123,12 @@ names = [r"$\lnC_{f_0,f_0}$",r"$\lnC_{f_1,f_1}$",r"$\lnC_{g_0,g_0}$",r"$\lnC_{g_
              r"$R_{f_1,g_0}$",r"$R_{f_1,g_1}$",r"$R_{g_0,g_1}$"]
 
 if do_analysis:        
-    for trial in range(1):#N_trials):
+    for trial in range(N_trials):
         full_chain = np.load("output_files/chains/full_chain_trial%d.npy"%trial)
-        print full_chain.shape
+        print "Creating corner for trial %d"%trial
+        #print full_chain.shape
         chain = full_chain[:,N_burn:].reshape(int(N_walkers*(N_steps-N_burn)),N_dim)
-        print chain.shape
+        #print chain.shape
         fig = corner.corner(chain,labels=names,plot_datapoints=False)
         #plt.show()
         fig.savefig("output_files/chains/fig_chain_trial%d.png"%trial)

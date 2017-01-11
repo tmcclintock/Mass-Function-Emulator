@@ -20,7 +20,6 @@ scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,
 redshifts = 1./scale_factors - 1.0
 volume = 1050.**3 #[Mpc/h]^3
 
-
 #Data path
 base = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/"
 datapath = base+"/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
@@ -42,9 +41,6 @@ variances = np.loadtxt("../test_data/var_models.txt")
 data = np.ones((N_cosmos,len(means[0]),2)) #Last column is for mean/erros
 data[:,:,0] = means
 data[:,:,1] = np.sqrt(variances)
-
-#Create an array with chi2
-chi2_array = np.zeros((N_cosmos,N_z))
 
 #Save all the predictions in arrays
 param_array = np.zeros((N_cosmos,4))
@@ -81,13 +77,18 @@ for i in xrange(box_low,box_high):
         lM_bins = MF_data[:,:2]
         N_data = MF_data[:,2]
         cov_data = np.genfromtxt(covpath%(i,i,j))
-        icov = np.linalg.inv(cov_data)
+
+        #Remove bad data
+        indices = np.where(N_data > 0)[0]
+        N_data = N_data[indices]
+        lM_bins = lM_bins[indices]
+        cov_data = cov_data[:,indices]
+        cov_data = cov_data[indices,:]
+
         N_err = np.sqrt(np.diagonal(cov_data))
         n = mfe.predict_mass_function(test_cosmo,redshift=redshifts[j],lM_bins=lM_bins)
         N_emu = n*volume
         dNdf,dNdg = mfe.MF_model.derivs_in_bins(lM_bins)*volume
-        chi2 = np.dot((N_data-N_emu),np.dot(np.linalg.inv(cov_data),(N_data-N_emu)))
-        chi2_array[i,j] = chi2
 
         #Append to the arrays
         N_data_array.append(N_data)
@@ -98,15 +99,7 @@ for i in xrange(box_low,box_high):
         dNdfxdNdf_array.append(np.outer(dNdf,dNdf))
         dNdgxdNdg_array.append(np.outer(dNdg,dNdg))
         dNdfxdNdg_array.append(np.outer(dNdf,dNdg))
-        print N_data
-        print N_emu
-        print dNdf
-        print dNdg
-        sys.exit()
 
-    print chi2_array[i]
-
-#np.savetxt("chi2_array.txt",chi2_array)
 pickle.dump(N_data_array,open("N_data_array.p","wb"))
 pickle.dump(N_emu_array,open("N_emu_array.p","wb"))
 pickle.dump(cov_data_array,open("cov_data_array.p","wb"))
