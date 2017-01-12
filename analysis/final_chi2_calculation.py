@@ -67,7 +67,9 @@ z_low, z_high = 0,N_z
 Nboxes = box_high - box_low
 Nzs = z_high - z_low
 chi2s = np.zeros((Nboxes*Nzs))
+bigchi2s = np.zeros((Nboxes))
 N_fp = np.zeros((Nboxes*Nzs)) #Number of free parameters
+bigN_fp = np.zeros((Nboxes))
 ci = 0 #counter
 for i in xrange(box_low,box_high):
     cj = 0 #counter
@@ -91,7 +93,9 @@ for i in xrange(box_low,box_high):
                 chi2 += X[ii]*icov[ii,jj]*X[jj]
         #chi2s[ci*Nzs + cj] = np.dot(X,np.dot(icov,X))
         chi2s[ci*Nzs + cj] = chi2
+        bigchi2s[ci] += chi2
         N_fp[ci*Nzs + cj] = hi-lo
+        bigN_fp[ci] += hi-lo
         cj += 1
         #print redshifts[j],np.sqrt(np.diagonal(cov_model)/np.diagonal(cov_data))
         continue
