@@ -20,10 +20,10 @@ import matplotlib.pyplot as plt
 #Flow control
 do_single_test = False
 do_maximization = False
-do_MCMC = True
-do_analysis = True
+do_MCMC = False
+do_analysis = False
 average_chains = False
-make_corrs = False
+make_corrs = True
 
 #MCMC information
 N_trials = 100 #number of trials within a single MCMC step
@@ -126,16 +126,13 @@ if do_analysis:
     for trial in range(N_trials):
         full_chain = np.load("output_files/chains/full_chain_trial%d.npy"%trial)
         print "Creating corner for trial %d"%trial
-        #print full_chain.shape
         chain = full_chain[:,N_burn:].reshape(int(N_walkers*(N_steps-N_burn)),N_dim)
-        #print chain.shape
         fig = corner.corner(chain,labels=names,plot_datapoints=False)
-        #plt.show()
         fig.savefig("output_files/chains/fig_chain_trial%d.png"%trial)
         plt.close()
 
 if average_chains:
-    from_scratch = False
+    from_scratch = True
     if from_scratch:
         means = np.zeros((N_trials,N_dim)) #Holds all chain means
         var   = np.zeros((N_trials,N_dim)) #Holds all chain variances

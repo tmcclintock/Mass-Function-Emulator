@@ -7,16 +7,16 @@ import visualize
 import training_likelihoods as TL
 
 #Choose which modes to run
-run_test = True
-run_best_fit = True
-run_mcmc = True
-run_comparisons = True
+run_test = False
+run_best_fit = False
+run_mcmc = False
+run_comparisons = False
 see_corner = True
 
 #MCMC configuration
 N_parameters = 4
 nwalkers, nsteps = 16, 1000
-nburn = 0 #500
+nburn = 500
 corner_labels = [r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
 
 #These are the scale factors of the snapshots
@@ -35,7 +35,7 @@ data_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/full_mf_data
 cov_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
 #Create the output files
-from_scratch = True
+from_scratch = False
 if from_scratch:
     best_fit_models = np.zeros((N_boxes,N_parameters))
     np.savetxt("txt_files/best_fit_models.txt",best_fit_models)
@@ -150,7 +150,7 @@ for i in xrange(box_lo,box_hi):
         import matplotlib.pyplot as plt
         fig = corner.corner(chain,labels=corner_labels,plot_datapoints=False)
         plt.gcf().savefig("figures/Box%03d_corner.png"%(i))
-        #plt.show()
+        plt.show()
         plt.close()
 
     #Save the models
