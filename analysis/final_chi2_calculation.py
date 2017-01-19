@@ -4,6 +4,8 @@ That means that we want to know the distribution of the chi2s.
 """
 import numpy as np
 import pickle, sys, os, copy
+sys.path.insert(0,"../visualization/")
+import visualize
 
 N_cosmos = 39#Number of data files
 N_z = 10#Number of redshifts
@@ -61,6 +63,9 @@ def get_cov_model(cov_fg,NfNf,NgNg,NfNg):
     cov_model = NfNf*cov_fg[0,0]+NgNg*cov_fg[1,1]+(NfNg+NfNg.T)*cov_fg[0,1]
     return cov_model
 
+base = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/"
+datapath = base+"/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
+
 #Loop over boxes and redshifts and get all final chi2
 box_low, box_high = 0,N_cosmos
 z_low, z_high = 0,N_z
@@ -84,7 +89,8 @@ for i in xrange(box_low,box_high):
         k = k_all[j]
         cov_fg = get_cov_fg(cov_HP,k)
         cov_model = get_cov_model(cov_fg,dNdfxdNdf,dNdgxdNdg,dNdfxdNdg)
-        icov = np.linalg.inv(cov_data*2+cov_model)
+        cov = cov_data+cov_model
+        icov = np.linalg.inv(cov)
         X = N_data - N_emu
         chi2 = 0.0
         lo,hi = 0, len(X)
@@ -98,9 +104,16 @@ for i in xrange(box_low,box_high):
         bigN_fp[ci] += hi-lo
         cj += 1
         #print redshifts[j],np.sqrt(np.diagonal(cov_model)/np.diagonal(cov_data))
+        MF_data = np.genfromtxt(datapath%(i,i,j))
+        lM_bins = MF_data[:,:2]
+        lM = np.mean(lM_bins,1)
+        print lM
+        N_err = np.sqrt(np.diag(cov))
+        visualize.NM_plot(lM,N_data,N_err,lM,N_emu)
         continue
     ci += 1
     continue
+sys.exit()
 
 import matplotlib.pyplot as plt
 from scipy.stats import chi2
@@ -109,4 +122,7 @@ df = np.mean(N_fp)
 mean,var,skew,kurt = chi2.stats(df,moments='mvsk')
 x = np.linspace(chi2.ppf(0.01,df),chi2.ppf(0.99,df),100)
 plt.plot(x,chi2.pdf(x,df))
+plt.title("z=0")
+plt.xlabel(r"$\chi^2$",fontsize=24)
+plt.subplots_adjust(bottom=0.15)
 plt.show()
