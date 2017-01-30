@@ -14,15 +14,15 @@ def single_NM_plot(lM_data, NM_data, NM_err):
     ax.errorbar(lM_data,NM_data,yerr=NM_err)
     ax.set_yscale('log')
 
-    ax.set_xlabel(r"$\log_{10}M\ [M_\odot/h]$")
+    ax.set_xlabel(r"$\log_{10}M\ [{\rm M_\odot}/h]$")
     ylims = ax.get_ylim()
-    ax.set_ylim(1e-1,ylims[1])
+    #ax.set_ylim(1e-0,1e6)
     ax.set_ylabel(r"$N(M,z)$")
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
     if show_plots:
         plt.show()
     plt.close()
-
+    return
 
 def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model,title=None):
     f,axarr = plt.subplots(2, sharex = True)
@@ -48,6 +48,7 @@ def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model,title=None):
     if show_plots:
         plt.show()
     plt.close()
+    return
 
 def NM_emulated(lM_data, NM_data, NM_err, lM_emu, NM_emu, NM_emu_err,title,savepath):
     f,axarr = plt.subplots(2, sharex = True)
@@ -94,6 +95,7 @@ def NM_emulated(lM_data, NM_data, NM_err, lM_emu, NM_emu, NM_emu_err,title,savep
         plt.show()
     plt.clf()
     plt.close()
+    return
 
 def g_sigma_plot(NM_model_obj,redshift,volume,cosmo_dict,\
                      lM_data,lM_bins,NM_data,NM_err,best_params):
@@ -137,6 +139,7 @@ def g_sigma_plot(NM_model_obj,redshift,volume,cosmo_dict,\
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
     if show_plots:
         plt.show()
+    return
 
 def g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM_data,lM_bins,NM_data,NM_err,best_params,variances,title,savepath):
     G = 4.52e-48 #Newton's gravitional constant in Mpc^3/s^2/Solar Mass
@@ -208,3 +211,4 @@ def g_sigma_emulated(NM_model_obj,redshift,volume,cosmo_dict,lM_data,lM_bins,NM_
         plt.show()
     plt.clf()
     plt.close()
+    return
