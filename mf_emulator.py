@@ -109,7 +109,7 @@ if __name__=="__main__":
     data[:,:,1] = np.sqrt(variances)
     
     #Pick out the training/testing data
-    box_index, z_index = 0, 0
+    box_index, z_index = 0, 9
     test_cosmo = all_cosmologies[box_index]
     test_data = data[box_index]
     training_cosmologies = np.delete(all_cosmologies,box_index,0)
@@ -126,9 +126,11 @@ if __name__=="__main__":
 
     #Read in the test mass function
     MF_data = np.genfromtxt("./test_data/Box%03d_full_Z%d.txt"%(box_index,z_index))
+    MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box000_full/Box%03d_full_Z%d.txt"%(box_index,z_index))
     lM_bins = MF_data[:,:2]
     N_data = MF_data[:,2]
     cov_data = np.genfromtxt("./test_data/Box%03d_cov_Z%d.txt"%(box_index,z_index))
+    cov_data = np.genfromtxt("../../all_MF_data/building_MF_data/covariances/Box000_cov/Box%03d_cov_Z%d.txt"%(box_index,z_index))
     N_err = np.sqrt(np.diagonal(cov_data))
 
     #Scale factors and redshifts
@@ -149,6 +151,7 @@ if __name__=="__main__":
     sys.path.insert(0,'./visualization/')
     import visualize
     lM = np.log10(np.mean(10**lM_bins,1))
-    visualize.NM_plot(lM,N_data,N_err,lM,N_emu,title=r"LOO Box%03d at z=%.2f $\chi^2=%.2f$"%(box_index,redshifts[z_index],chi2))
+    #visualize.NM_plot(lM,N_data,N_err,lM,N_emu,title=r"LOO Box%03d at z=%.2f $\chi^2=%.2f$"%(box_index,redshifts[z_index],chi2))
+    visualize.NM_plot(lM,N_data,N_err,lM,N_emu)
 
 

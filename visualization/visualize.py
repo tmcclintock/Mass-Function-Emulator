@@ -4,7 +4,7 @@ sys.path.insert(0,"../NM_model/")
 import cosmocalc as cc
 import matplotlib.pyplot as plt
 #plt.rc(usetex=True)
-plt.rc('text', fontsize=20)
+plt.rc('text',usetex=True, fontsize=20)
 
 show_plots = True
 
@@ -27,25 +27,29 @@ def single_NM_plot(lM_data, NM_data, NM_err):
 def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model,title=None):
     f,axarr = plt.subplots(2, sharex = True)
     
-    axarr[0].errorbar(lM_data,NM_data,yerr=NM_err)
-    axarr[0].plot(lM_model,NM_model)
+    axarr[0].errorbar(lM_data,NM_data,yerr=NM_err,marker='.',c='k')
+    axarr[0].plot(lM_model,NM_model,c='r')
     axarr[0].set_yscale('log')
 
     pdiff = 100*(NM_data - NM_model)/NM_model
     pde = 100*NM_err/NM_model
-    axarr[1].errorbar(lM_data,pdiff,pde,marker='o')
+    axarr[1].errorbar(lM_data,pdiff,pde,marker='.',c='k')
     ylim_max = max(np.fabs(pdiff)) + max(np.fabs(pde))
     xlim = axarr[1].get_xlim()
     ylim = [-ylim_max,ylim_max]
+    ylim = [1e-1,1e6]
     axarr[1].plot(xlim,[0,0],"k--")
     axarr[1].set_xlim(xlim)
-    axarr[1].set_ylim(ylim)
+    axarr[0].set_ylim(ylim)
+    axarr[1].set_ylim(-18,18)
     axarr[1].set_xlabel(r"$\log_{10}M\ [{\rm M}_\odot/h]$")
-    axarr[0].set_ylabel(r"$N(M,z)$")
+    #axarr[0].set_ylabel(r"$N(M,z)$")
+    axarr[0].set_ylabel(r"${\rm Number}/[1\ {\rm Gpc^3}\ log_{10}{\rm M_\odot}]$")
     axarr[1].set_ylabel(r"$\%\ {\rm Diff}$")
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
     if title is not None: axarr[0].set_title(title)
     if show_plots:
+        plt.gcf().savefig("../../mfe.png")
         plt.show()
     plt.close()
     return

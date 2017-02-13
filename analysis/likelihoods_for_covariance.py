@@ -11,6 +11,7 @@ def lnlike(params,NM_model_array,NM_data_array,cov_data_array,\
     #cf0f0,cf1f1,cg0g0,cg1g1 = params[:4]#np.exp(params[:4])
     cf0f0,cf1f1,cg0g0,cg1g1 = np.exp(params[:4])
     rf0f1,rf0g0,rf0g1,rf1g0,rf1g1,rg0g1 = params[4:]
+    print params
     #The covariances of the parameter matrix
     cf0f1 = rf0f1*np.sqrt(cf0f0*cf1f1)
     cf0g0 = rf0g0*np.sqrt(cf0f0*cg0g0)
@@ -37,20 +38,6 @@ def lnlike(params,NM_model_array,NM_data_array,cov_data_array,\
         cov_fg = cf0f0 + k*cf0g1 + k*cf1g0 + k**2*cf1g1
         #Assemble the NM covariance matrix
         cov_model = dNdfxdNdf*cov_ff + dNdgxdNdg*cov_gg + (dNdfxdNdg + dNdfxdNdg.T)*cov_fg
-        """
-        if i ==0:
-            print params
-            print NM_data
-            print NM_model
-            print cov_ff,cov_gg,cov_fg
-            print cov_data[0]
-            print cov_model[0]
-            print "Derivs:"
-            print dNdfxdNdf[0]
-            print dNdgxdNdg[0]
-            print dNdfxdNdg[0]
-            """
-
         #Find the inverse of the full covariance matrix
         cov = cov_data + cov_model
         det = np.linalg.det(cov)

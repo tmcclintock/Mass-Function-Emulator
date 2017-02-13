@@ -9,22 +9,22 @@ import training_likelihoods as TL
 #Choose which modes to run
 run_test = False
 run_best_fit = False
+run_bf_comparisons = False
 run_mcmc = False
-run_comparisons = True
+run_mcmc_comparisons = False
 calculate_chi2 = False
-see_corner = False
+see_corner = True
 
 #MCMC configuration
-N_parameters = 4
-nwalkers, nsteps = 16, 1000
-nburn = 500
-corner_labels = [r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
+N_parameters = 8
+nwalkers, nsteps = 32, 2500
+nburn = 750
+corner_labels = [r"$d0$",r"$d1$",r"$e0$",r"$e1$",
+                 r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
 
-#These are the scale factors of the snapshots
+#Scale factors, redshifts, volume
 scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
 redshifts = 1./scale_factors - 1.0
-
-#The volume of the building simulations
 volume = 1050.**3 #[Mpc/h]^3
 
 #Gather the cosmological parameters
@@ -39,22 +39,22 @@ cov_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/covariances/B
 from_scratch = False
 if from_scratch:
     best_fit_models = np.zeros((N_boxes,N_parameters))
-    np.savetxt("txt_files/best_fit_models.txt",best_fit_models)
+    np.savetxt("txt_files/full_best_fit_models.txt",best_fit_models)
     mean_models = np.zeros((N_boxes,N_parameters))
-    np.savetxt("txt_files/mean_models.txt",mean_models)
+    np.savetxt("txt_files/full_mean_models.txt",mean_models)
     var_models = np.zeros((N_boxes,N_parameters))
-    np.savetxt("txt_files/var_models.txt",var_models)
+    np.savetxt("txt_files/full_var_models.txt",var_models)
     chi2s = np.zeros((N_boxes,N_z))
-    np.savetxt("txt_files/chi2_models.txt",chi2s)
+    np.savetxt("txt_files/full_chi2_models.txt",chi2s)
 else: 
-    best_fit_models = np.loadtxt("txt_files/best_fit_models.txt")
-    mean_models = np.loadtxt("txt_files/mean_models.txt")
-    var_models = np.loadtxt("txt_files/var_models.txt")
-    chi2s = np.loadtxt("txt_files/chi2_models.txt")
+    best_fit_models = np.loadtxt("txt_files/full_best_fit_models.txt")
+    mean_models = np.loadtxt("txt_files/full_mean_models.txt")
+    var_models = np.loadtxt("txt_files/full_var_models.txt")
+    chi2s = np.loadtxt("txt_files/full_chi2_models.txt")
 
 #Loop over cosmologies and redshifts
 box_lo,box_hi = 0,1#N_boxes
-z_lo,z_hi = 9,N_z #Which redshifts to plot
+z_lo,z_hi = 0,N_z #Which redshifts to plot
 for i in xrange(box_lo,box_hi):
     #Get in the cosmology and create a cosmo_dict
     num,ombh2,omch2,w0,ns,ln10As,H0,Neff,sigma8 = all_cosmologies[i]
@@ -93,7 +93,8 @@ for i in xrange(box_lo,box_hi):
     
     #Guess the parameters
     guesses = np.array([1.97,1.0,0.51,1.228,-19.0]) #d,e,f,g, ln_scatter
-    guesses = np.array([0.43,0.13,1.18,-0.03]) #f0,f1,g0,g1
+    guesses = np.array([2.13,0.11,1.13,0.10, #d0,d1,e0,e1
+                        0.41,0.15,1.25,0.11]) #f0,f1,g0,g1
 
     if run_test:
         test = TL.lnprob(guesses,scale_factors,redshifts,lM_bin_array,N_data_array,cov_array,icov_array,volume,MF_model_array)
@@ -105,13 +106,14 @@ for i in xrange(box_lo,box_hi):
         best_fit_models[i] = result['x']
         print "Best fit for Box%03d:\n%s\n"%(i,result)
 
-    if run_comparisons:
-        f0,f1,g0,g1 = best_fit_models[i]
+    if run_bf_comparisons:
+        d0,d1,e0,e1,f0,f1,g0,g1 = best_fit_models[i]
         for j in range(z_lo,z_hi):
-            continue
+            d = d0+(scale_factors[j]-0.5)*d1
+            e = e0+(scale_factors[j]-0.5)*e1
             f = f0+(scale_factors[j]-0.5)*f1
             g = g0+(scale_factors[j]-0.5)*g1
-            MF_model_array[j].set_parameters(1.97,1.0,f,g)
+            MF_model_array[j].set_parameters(d,e,f,g)
             N = MF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_err = np.sqrt(np.diagonal(cov_array[j]))
             visualize.NM_plot(lM_array[j],N_data_array[j],N_err,lM_array[j],N)
@@ -133,12 +135,14 @@ for i in xrange(box_lo,box_hi):
         mean_models[i] = np.mean(chain,0)
         var_models[i] = np.var(chain,0)
 
-    if run_comparisons:
-        f0,f1,g0,g1 = mean_models[i]
+    if run_mcmc_comparisons:
+        d0,d1,e0,e1,f0,f1,g0,g1 = mean_models[i]
         for j in range(z_lo,z_hi):
+            d = d0+(scale_factors[j]-0.5)*d1
+            e = e0+(scale_factors[j]-0.5)*e1
             f = f0+(scale_factors[j]-0.5)*f1
             g = g0+(scale_factors[j]-0.5)*g1
-            MF_model_array[j].set_parameters(1.97,1.0,f,g)
+            MF_model_array[j].set_parameters(d,e,f,g)
             N = MF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_err = np.sqrt(np.diagonal(cov_array[j]))
             sigdif = (N_data_array[j]-N)/N_err
@@ -149,11 +153,13 @@ for i in xrange(box_lo,box_hi):
             visualize.NM_plot(lM_array[j],N_data_array[j],N_err,lM_array[j],N,title="Box%03d at z=%.2f"%(i,redshifts[j]))
 
     if calculate_chi2:
-        f0,f1,g0,g1 = mean_models[i]
+        d0,d1,e0,e1,f0,f1,g0,g1 = mean_models[i]
         for j in range(z_lo,z_hi):
+            d = d0+(scale_factors[j]-0.5)*d1
+            e = e0+(scale_factors[j]-0.5)*e1
             f = f0+(scale_factors[j]-0.5)*f1
             g = g0+(scale_factors[j]-0.5)*g1
-            MF_model_array[j].set_parameters(1.97,1.0,f,g)
+            MF_model_array[j].set_parameters(d,e,f,g)
             N_fit = MF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_data = N_data_array[j]
             X = N_data-N_fit
@@ -161,7 +167,8 @@ for i in xrange(box_lo,box_hi):
             icov = np.linalg.inv(cov)
             chi2 = np.dot(X,np.dot(icov,X))
             chi2s[i,j] = chi2
-        print "Chi2s calculated for Box%03d"%i
+        print "Chi2s for Box%03d are:"%i
+        print chi2s[i]
 
     if see_corner:
         fullchain = np.loadtxt("chains/Box%03d_chain.txt"%(i))
@@ -174,9 +181,9 @@ for i in xrange(box_lo,box_hi):
 
     #Save the models
     header = "f0\tf1\tg0\g1"
-    np.savetxt("txt_files/best_fit_models.txt",best_fit_models,header=header)
-    np.savetxt("txt_files/mean_models.txt",mean_models,header=header)
-    np.savetxt("txt_files/var_models.txt",var_models,header=header)
-    np.savetxt("txt_files/chi2_models.txt",chi2s)
+    np.savetxt("txt_files/full_best_fit_models.txt",best_fit_models,header=header)
+    np.savetxt("txt_files/full_mean_models.txt",mean_models,header=header)
+    np.savetxt("txt_files/full_var_models.txt",var_models,header=header)
+    np.savetxt("txt_files/full_chi2_models.txt",chi2s)
     continue #end loop over boxes/cosmologies
 

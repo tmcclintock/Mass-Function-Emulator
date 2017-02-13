@@ -23,7 +23,8 @@ do_maximization = False
 do_MCMC = False
 do_analysis = False
 average_chains = False
-make_corrs = True
+show_likelihood = True
+make_corrs = False
 
 #MCMC information
 N_trials = 100 #number of trials within a single MCMC step
@@ -159,6 +160,38 @@ if average_chains:
         plt.show()
         plt.close()
 
+##############
+##############
+if show_likelihood:
+    slidenames = ["C:f0","C:f1","C:g0","C:g1","rf0f1","rf0g0","rf0g1","rf1g0","rf1g1","rg0g1"]
+    z_indices = np.random.randint(0,N_z,N_cosmos)
+    
+    means = np.loadtxt("output_files/chain_means.txt")
+    var   = np.loadtxt("output_files/chain_vars.txt")
+    allmeans = np.mean(means,0)
+    allvars = np.mean(var,0)
+    like_args = (N_emu_array,N_data_array,cov_data_array,dNdfxdNdf_array,dNdgxdNdg_array,dNdfxdNdg_array,k,N_cosmos,N_z,z_indices)
+    for i in range(N_dim):
+        x = allmeans[i]
+        width = allvars[i]
+        X = np.linspace(x-width*3,x+width*3,100)
+        Y = []
+        for x in X:
+            params = allmeans.copy()
+            params[i] = x
+            Y.append(lnprob(params,N_emu_array,
+                            N_data_array,cov_data_array,
+                            dNdfxdNdf_array,dNdgxdNdg_array,
+                            dNdfxdNdg_array,k,N_cosmos,N_z,z_indices))
+        Y = np.array(Y)
+        plt.plot(X,Y)
+        plt.title(slidenames[i])
+        print min(Y),max(Y)
+        plt.plot([allmeans[i],allmeans[i]],[min(Y),max(Y)])
+        plt.show()
+
+##############
+##############
 if make_corrs:
     def view_corr(cov,title):
         labels = [r"$f_0$",r"$f_1$",r"$g0$",r"$g_1$"]
