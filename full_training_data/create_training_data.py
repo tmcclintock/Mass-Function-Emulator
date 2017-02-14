@@ -180,7 +180,7 @@ for i in xrange(box_lo,box_hi):
         plt.close()
 
     #Save the models
-    header = "f0\tf1\tg0\g1"
+    header = "d0\td1\te0\e1\tf0\tf1\tg0\tg1"
     np.savetxt("txt_files/full_best_fit_models.txt",best_fit_models,header=header)
     np.savetxt("txt_files/full_mean_models.txt",mean_models,header=header)
     np.savetxt("txt_files/full_var_models.txt",var_models,header=header)

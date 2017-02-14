@@ -1,18 +1,19 @@
 """
 Make the plots for my grad talk on 2/3.
 """
-import mf_emulator
 import emulator, sys
 import numpy as np
 import tinker_mass_function as TMF
-sys.path.insert(0,'./visualization/')
+sys.path.insert(0,'../visualization/')
+sys.path.insert(0,"..")
+import mf_emulator
 import visualize
 import matplotlib.pyplot as plt
 plt.rc('text',usetex=True,fontsize=24)
 
-savedir = "../../Presentations/grad_talk_spring_2017/"
-datapath = "../../all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
-covpath = "../../all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
+savedir = "./"
+datapath = "../../../all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
+covpath = "../../../all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 volume = 1050.**3 #[Mpc/h]^3
 
 doscatter = True
@@ -21,7 +22,7 @@ showzs = True
 
 
 #Read in the input cosmologies
-all_cosmologies = np.genfromtxt("./test_data/building_cosmos_all_params.txt")
+all_cosmologies = np.genfromtxt("../test_data/building_cosmos_all_params.txt")
 #all_cosmologies = np.delete(all_cosmologies,5,1) #Delete ln10As
 all_cosmologies = np.delete(all_cosmologies,0,1) #Delete boxnum
 all_cosmologies = np.delete(all_cosmologies,-1,0)#39 is broken

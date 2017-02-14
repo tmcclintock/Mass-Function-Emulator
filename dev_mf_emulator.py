@@ -55,15 +55,14 @@ class mf_emulator(object):
             emulator_list: a list with an emulator for each parameter
             trained: set to True onces training is complete
         """
-        if names == None:
-            names = ["emu_f0","emu_f1","emu_g0","emu_g1"]
+        if names == None:names = ["emu_f0","emu_f1","emu_g0","emu_g1"]
         N_cosmos = len(cosmologies)
         N_emulators = training_data.shape[1]
         emulator_list = []
         for i in range(N_emulators):
             y = training_data[:,i,0]
             yerr = training_data[:,i,1]
-            emu = emulator.Emulator(name=names[i],xdata=cosmologies,ydata=y,yerr=yerr)
+            emu = emulator.Emulator(name="emu%d"%i,xdata=cosmologies,ydata=y,yerr=yerr)
             emu.train()
             emulator_list.append(emu)
         self.emulator_list = emulator_list
@@ -81,10 +80,11 @@ class mf_emulator(object):
         if not all(cosmology==self.cosmology): self.set_cosmology(cosmology,redshift)
         self.redshift = redshift
         self.scale_factor = 1./(1+redshift)
-        predictions = self.predict_parameters(cosmology)
-        params, variances = predictions[:,0], predictions[:,1]
-        f0,f1,g0,g1 =  params
-        d,e = 1.97,1.0
+        preds = self.predict_parameters(cosmology)
+        params, variances = preds[:,0], preds[:,1]
+        d0,d1,e0,e1,f0,f1,g0,g1 =  params
+        d = d0 + (self.scale_factor-0.5)*d1
+        e = e0 + (self.scale_factor-0.5)*e1
         f = f0 + (self.scale_factor-0.5)*f1
         g = g0 + (self.scale_factor-0.5)*g1
         self.MF.set_parameters(d,e,f,g)
@@ -93,14 +93,19 @@ class mf_emulator(object):
 if __name__=="__main__":
     #Read in the input cosmologies
     all_cosmologies = np.genfromtxt("./test_data/building_cosmos_all_params.txt")
-    #all_cosmologies = np.delete(all_cosmologies,5,1) #Delete ln10As
+    print all_cosmologies.shape
+    all_cosmologies = np.delete(all_cosmologies,5,1) #Delete ln10As
+    print all_cosmologies.shape
     all_cosmologies = np.delete(all_cosmologies,0,1) #Delete boxnum
+    print all_cosmologies.shape
     all_cosmologies = np.delete(all_cosmologies,-1,0)#39 is broken
+    print all_cosmologies.shape
     N_cosmologies = len(all_cosmologies)
+    print N_cosmologies
 
     #Read in the input data
-    means = np.loadtxt("./test_data/mean_models.txt")
-    variances = np.loadtxt("./test_data/var_models.txt")
+    means = np.loadtxt("./full_training_data/txt_files/full_mean_models.txt")
+    variances = np.loadtxt("./full_training_data/txt_files/full_var_models.txt")
     data = np.ones((N_cosmologies,len(means[0]),2)) #Last column is for mean/erros
     data[:,:,0] = means
     data[:,:,1] = np.sqrt(variances)
