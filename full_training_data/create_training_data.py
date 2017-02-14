@@ -9,16 +9,16 @@ import training_likelihoods as TL
 #Choose which modes to run
 run_test = False
 run_best_fit = False
-run_bf_comparisons = False
-run_mcmc = False
-run_mcmc_comparisons = False
+run_bf_comparisons = True
+run_mcmc = True
+run_mcmc_comparisons = True
 calculate_chi2 = False
 see_corner = True
 
 #MCMC configuration
 N_parameters = 8
-nwalkers, nsteps = 32, 2500
-nburn = 750
+nwalkers, nsteps = 32, 5000
+nburn = 1500
 corner_labels = [r"$d0$",r"$d1$",r"$e0$",r"$e1$",
                  r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
 
@@ -32,8 +32,8 @@ N_boxes, N_z = 39, 10 #39th is broken
 all_cosmologies = np.genfromtxt("../cosmology_files/building_cosmos_all_params.txt")
 
 #The paths to the data and covariances. This is hard coded in.
-data_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
-cov_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
+data_path = "../../../all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
+cov_path = "../../../all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
 #Create the output files
 from_scratch = False
@@ -54,7 +54,7 @@ else:
 
 #Loop over cosmologies and redshifts
 box_lo,box_hi = 0,1#N_boxes
-z_lo,z_hi = 0,N_z #Which redshifts to plot
+z_lo,z_hi = 9,N_z #Which redshifts to plot
 for i in xrange(box_lo,box_hi):
     #Get in the cosmology and create a cosmo_dict
     num,ombh2,omch2,w0,ns,ln10As,H0,Neff,sigma8 = all_cosmologies[i]
@@ -68,7 +68,7 @@ for i in xrange(box_lo,box_hi):
     N_data_array = []
     cov_array = []
     icov_array = []
-    MF_model_array = []
+    TMF_model_array = []
     for j in xrange(0,N_z):
         #Get in the data
         lM_low,lM_high,N_data,NP = np.loadtxt(data_path%(i,i,j)).T
@@ -87,8 +87,8 @@ for i in xrange(box_lo,box_hi):
         N_data_array.append(N_data)
         cov_array.append(cov)
         icov_array.append(icov)
-        MF_model = TMF.MF_model(cosmo_dict,redshifts[j])
-        MF_model_array.append(MF_model)
+        TMF_model = TMF.TMF_model(cosmo_dict,redshifts[j])
+        TMF_model_array.append(TMF_model)
         continue
     
     #Guess the parameters
@@ -97,12 +97,12 @@ for i in xrange(box_lo,box_hi):
                         0.41,0.15,1.25,0.11]) #f0,f1,g0,g1
 
     if run_test:
-        test = TL.lnprob(guesses,scale_factors,redshifts,lM_bin_array,N_data_array,cov_array,icov_array,volume,MF_model_array)
+        test = TL.lnprob(guesses,scale_factors,redshifts,lM_bin_array,N_data_array,cov_array,icov_array,volume,TMF_model_array)
         print "Test result = %f\n"%test
 
     if run_best_fit:
         nll = lambda *args:-TL.lnprob(*args)
-        result = op.minimize(nll,guesses,args=(scale_factors,redshifts,lM_bin_array,N_data_array,cov_array,icov_array,volume,MF_model_array),method="Powell")
+        result = op.minimize(nll,guesses,args=(scale_factors,redshifts,lM_bin_array,N_data_array,cov_array,icov_array,volume,TMF_model_array),method="Powell")
         best_fit_models[i] = result['x']
         print "Best fit for Box%03d:\n%s\n"%(i,result)
 
@@ -113,16 +113,16 @@ for i in xrange(box_lo,box_hi):
             e = e0+(scale_factors[j]-0.5)*e1
             f = f0+(scale_factors[j]-0.5)*f1
             g = g0+(scale_factors[j]-0.5)*g1
-            MF_model_array[j].set_parameters(d,e,f,g)
-            N = MF_model_array[j].n_in_bins(lM_bin_array[j])*volume
+            TMF_model_array[j].set_parameters(d,e,f,g)
+            N = TMF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_err = np.sqrt(np.diagonal(cov_array[j]))
-            visualize.NM_plot(lM_array[j],N_data_array[j],N_err,lM_array[j],N)
+            visualize.NM_plot(lM_array[j],N_data_array[j],N_err,lM_array[j],N,title="Best fit")
             
     if run_mcmc:
         ndim = N_parameters
         start = best_fit_models[i]
-        pos = [start + 1e-2*np.random.randn(ndim) for k in range(nwalkers)]
-        sampler = emcee.EnsembleSampler(nwalkers,ndim,TL.lnprob,args=(scale_factors,redshifts,lM_bin_array,N_data_array,cov_array,icov_array,volume,MF_model_array))
+        pos = [start + 1e-3*np.random.randn(ndim) for k in range(nwalkers)]
+        sampler = emcee.EnsembleSampler(nwalkers,ndim,TL.lnprob,args=(scale_factors,redshifts,lM_bin_array,N_data_array,cov_array,icov_array,volume,TMF_model_array))
         print "Performing MCMC on Box%03d"%(i)
         sampler.run_mcmc(pos,nsteps)
         print "MCMC complete for Box%03d\n"%(i)
@@ -142,8 +142,8 @@ for i in xrange(box_lo,box_hi):
             e = e0+(scale_factors[j]-0.5)*e1
             f = f0+(scale_factors[j]-0.5)*f1
             g = g0+(scale_factors[j]-0.5)*g1
-            MF_model_array[j].set_parameters(d,e,f,g)
-            N = MF_model_array[j].n_in_bins(lM_bin_array[j])*volume
+            TMF_model_array[j].set_parameters(d,e,f,g)
+            N = TMF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_err = np.sqrt(np.diagonal(cov_array[j]))
             sigdif = (N_data_array[j]-N)/N_err
             print "\nZ%d"%j
@@ -159,8 +159,8 @@ for i in xrange(box_lo,box_hi):
             e = e0+(scale_factors[j]-0.5)*e1
             f = f0+(scale_factors[j]-0.5)*f1
             g = g0+(scale_factors[j]-0.5)*g1
-            MF_model_array[j].set_parameters(d,e,f,g)
-            N_fit = MF_model_array[j].n_in_bins(lM_bin_array[j])*volume
+            TMF_model_array[j].set_parameters(d,e,f,g)
+            N_fit = TMF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_data = N_data_array[j]
             X = N_data-N_fit
             cov = cov_array[j]

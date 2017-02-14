@@ -8,17 +8,15 @@ plt.rc('text',usetex=True, fontsize=20)
 
 show_plots = True
 
-def single_NM_plot(lM_data, NM_data, NM_err):
+def single_NM_plot(lM_data, NM_data, NM_err,title=None):
     fig,ax = plt.subplots(1,1)
-    
-    ax.errorbar(lM_data,NM_data,yerr=NM_err)
+    ax.errorbar(lM_data,NM_data,yerr=NM_err,c='k')
     ax.set_yscale('log')
-
-    ax.set_xlabel(r"$\log_{10}M\ [{\rm M_\odot}/h]$")
     ylims = ax.get_ylim()
-    #ax.set_ylim(1e-0,1e6)
-    ax.set_ylabel(r"$N(M,z)$")
+    ax.set_xlabel(r"$\log_{10}M\ [{\rm M_\odot/h}]$")
+    ax.set_ylabel(r"${\rm Number}/[1\ {\rm Gpc^3}\ log_{10}{\rm M_\odot}]$")
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
+    if title is not None:plt.title(title)
     if show_plots:
         plt.show()
     plt.close()

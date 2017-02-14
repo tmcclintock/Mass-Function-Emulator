@@ -7,6 +7,7 @@ linear_emulator/scratch_work/*
 analysis/*.p
 analysis/output_files/*
 analysis/output_files/chains/*
+test_data/TestBox*
 
 # emacs backup files
 *~

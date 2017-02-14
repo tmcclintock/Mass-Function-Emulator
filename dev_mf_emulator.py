@@ -93,15 +93,10 @@ class mf_emulator(object):
 if __name__=="__main__":
     #Read in the input cosmologies
     all_cosmologies = np.genfromtxt("./test_data/building_cosmos_all_params.txt")
-    print all_cosmologies.shape
-    all_cosmologies = np.delete(all_cosmologies,5,1) #Delete ln10As
-    print all_cosmologies.shape
+    #all_cosmologies = np.delete(all_cosmologies,5,1) #Delete ln10As
     all_cosmologies = np.delete(all_cosmologies,0,1) #Delete boxnum
-    print all_cosmologies.shape
     all_cosmologies = np.delete(all_cosmologies,-1,0)#39 is broken
-    print all_cosmologies.shape
     N_cosmologies = len(all_cosmologies)
-    print N_cosmologies
 
     #Read in the input data
     means = np.loadtxt("./full_training_data/txt_files/full_mean_models.txt")
@@ -111,7 +106,7 @@ if __name__=="__main__":
     data[:,:,1] = np.sqrt(variances)
     
     #Pick out the training/testing data
-    box_index, z_index = 0, 9
+    box_index, z_index = 1, 9
     test_cosmo = all_cosmologies[box_index]
     test_data = data[box_index]
     training_cosmologies = np.delete(all_cosmologies,box_index,0)
@@ -123,16 +118,17 @@ if __name__=="__main__":
 
     #Predict the TMF parameters
     predicted = mf_emulator.predict_parameters(test_cosmo)
-    print "real params: ",test_data[:,0]
-    print "pred params: ",predicted[:,0]
+    print "real\tpredicted"
+    for i in range(len(test_data)):
+        print "%.3f +- %.3f\t%.3f +- %.3f"%(test_data[i,0],test_data[i,1],predicted[i,0],predicted[i,1])
 
     #Read in the test mass function
-    MF_data = np.genfromtxt("./test_data/Box%03d_full_Z%d.txt"%(box_index,z_index))
-    MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box000_full/Box%03d_full_Z%d.txt"%(box_index,z_index))
+    #MF_data = np.genfromtxt("./test_data/Box%03d_full_Z%d.txt"%(box_index,z_index))
+    MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"%(box_index,box_index,z_index))
     lM_bins = MF_data[:,:2]
     N_data = MF_data[:,2]
-    cov_data = np.genfromtxt("./test_data/Box%03d_cov_Z%d.txt"%(box_index,z_index))
-    cov_data = np.genfromtxt("../../all_MF_data/building_MF_data/covariances/Box000_cov/Box%03d_cov_Z%d.txt"%(box_index,z_index))
+    #cov_data = np.genfromtxt("./test_data/Box%03d_cov_Z%d.txt"%(box_index,z_index))
+    cov_data = np.genfromtxt("../../all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"%(box_index,box_index,z_index))
     N_err = np.sqrt(np.diagonal(cov_data))
 
     #Scale factors and redshifts
