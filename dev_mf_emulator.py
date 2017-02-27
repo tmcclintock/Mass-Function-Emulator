@@ -82,7 +82,8 @@ class mf_emulator(object):
         self.scale_factor = 1./(1+redshift)
         preds = self.predict_parameters(cosmology)
         params, variances = preds[:,0], preds[:,1]
-        d0,d1,e0,e1,f0,f1,g0,g1 =  params
+        e0 = 1.1
+        d0,d1,e1,f0,f1,g0,g1 =  params
         d = d0 + (self.scale_factor-0.5)*d1
         e = e0 + (self.scale_factor-0.5)*e1
         f = f0 + (self.scale_factor-0.5)*f1
@@ -93,15 +94,10 @@ class mf_emulator(object):
 if __name__=="__main__":
     #Read in the input cosmologies
     all_cosmologies = np.genfromtxt("./test_data/building_cosmos_all_params.txt")
-    print all_cosmologies.shape
     all_cosmologies = np.delete(all_cosmologies,5,1) #Delete ln10As
-    print all_cosmologies.shape
     all_cosmologies = np.delete(all_cosmologies,0,1) #Delete boxnum
-    print all_cosmologies.shape
     all_cosmologies = np.delete(all_cosmologies,-1,0)#39 is broken
-    print all_cosmologies.shape
     N_cosmologies = len(all_cosmologies)
-    print N_cosmologies
 
     #Read in the input data
     means = np.loadtxt("./full_training_data/txt_files/full_mean_models.txt")
