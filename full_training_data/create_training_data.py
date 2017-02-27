@@ -24,7 +24,7 @@ nburn = 2000
 corner_labels = [r"$d0$",r"$d1$",r"$e1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
 
 #Fixed parameters
-#NONE
+e0 = 1.1
 
 #Scale factors, redshifts, volume
 scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
@@ -97,7 +97,7 @@ for i in xrange(box_lo,box_hi):
     
     #Guess the parameters
     guesses = np.array([1.97,1.0,0.51,1.228,-19.0]) #d,e,f,g, ln_scatter
-    guesses = np.array([2.13,0.11,1.1,0.10, #d0,d1,e0,e1
+    guesses = np.array([2.13,0.11,0.10, #d0,d1,e0,e1
                         0.41,0.15,1.25,0.11]) #f0,f1,g0,g1
 
     if run_test:
