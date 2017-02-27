@@ -40,7 +40,7 @@ data_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/full_mf_data
 cov_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
 #Create the output files
-from_scratch = True
+from_scratch = False
 if from_scratch:
     best_fit_models = np.zeros((N_boxes,N_parameters))
     np.savetxt("txt_files/full_best_fit_models.txt",best_fit_models)
