@@ -47,7 +47,7 @@ def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model,title=None):
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
     if title is not None: axarr[0].set_title(title)
     if show_plots:
-        plt.gcf().savefig("../../mfe.png")
+        #plt.gcf().savefig("../../mfe.png")
         plt.show()
     plt.close()
     return
