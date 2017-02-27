@@ -17,9 +17,9 @@ def lnlike_no_scatter(d,e,f,g,a,z,lM_bins,N_data,cov_data,icov_data,volume,MF_mo
 
 #Posterior
 def lnprob(params,a,z,lM_bins,N_data,cov_data,icov_data,volume,MF_model):
-    d0,d1,e0,e1,f0,f1,g0,g1 = params
+    d0,d1,e1,f0,f1,g0,g1 = params
     d = d0+(a-0.5)*d1
-    e = e0+(a-0.5)*e1
+    e = 1.1+(a-0.5)*e1 #e0 fixed
     f = f0+(a-0.5)*f1
     g = g0+(a-0.5)*g1
     if any(d<0) or any(d>5): return -np.inf

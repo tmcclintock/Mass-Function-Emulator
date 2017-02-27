@@ -44,7 +44,7 @@ def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model,title=None):
     axarr[1].set_ylim(-18,18)
     axarr[1].set_xlabel(r"$\log_{10}M\ [{\rm M}_\odot/h]$")
     #axarr[0].set_ylabel(r"$N(M,z)$")
-    axarr[0].set_ylabel(r"${\rm Number}/[1\ {\rm Gpc^3}\ log_{10}{\rm M_\odot}]$")
+    axarr[0].set_ylabel(r"${\rm Number}/[1\ {\rm Gpc^3}\ \log_{10}{\rm M_}\odot/h]$")
     axarr[1].set_ylabel(r"$\%\ {\rm Diff}$")
     plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
     if title is not None: axarr[0].set_title(title)
