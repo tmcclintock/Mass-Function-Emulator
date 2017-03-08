@@ -82,10 +82,9 @@ class mf_emulator(object):
         self.scale_factor = 1./(1+redshift)
         preds = self.predict_parameters(cosmology)
         params, variances = preds[:,0], preds[:,1]
-        e0 = 1.1
-        d0,d1,e1,f0,f1,g0,g1 =  params
+        d0,d1,f0,f1,g0,g1 =  params
         d = d0 + (self.scale_factor-0.5)*d1
-        e = e0 + (self.scale_factor-0.5)*e1
+        e = 1.0#e0 + (self.scale_factor-0.5)*e1
         f = f0 + (self.scale_factor-0.5)*f1
         g = g0 + (self.scale_factor-0.5)*g1
         self.MF.set_parameters(d,e,f,g)

@@ -10,10 +10,10 @@ import matplotlib.pyplot as plt
 #Choose which modes to run
 run_test = False
 run_best_fit = False
-run_bf_comparisons = False
+run_bf_comparisons = True
 run_mcmc = False
 run_mcmc_comparisons = False
-calculate_chi2 = True
+calculate_chi2 = False
 see_corner = False
 
 #MCMC configuration
@@ -67,7 +67,7 @@ else:
 
 #Loop over cosmologies and redshifts
 box_lo,box_hi = 0,N_boxes
-z_lo,z_hi = 0,N_z #Which redshifts to plot
+z_lo,z_hi = 9,10#N_z #Which redshifts to plot
 for i in xrange(box_lo,box_hi):
     #Get in the cosmology and create a cosmo_dict
     num,ombh2,omch2,w0,ns,ln10As,H0,Neff,sigma8 = all_cosmologies[i]
