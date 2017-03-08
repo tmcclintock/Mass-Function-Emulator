@@ -9,22 +9,19 @@ import matplotlib.pyplot as plt
 
 #Choose which modes to run
 run_test = False
-run_best_fit = True
+run_best_fit = False
 run_bf_comparisons = False
 run_mcmc = False
 run_mcmc_comparisons = False
-calculate_chi2 = False
+calculate_chi2 = True
 see_corner = False
 
 #MCMC configuration
-N_parameters = 7
+N_parameters = 6
 nwalkers, nsteps = 16, 5000
 nburn = 2000
 #corner_labels = [r"$d0$",r"$d1$",r"$e0$",r"$e1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
-corner_labels = [r"$d0$",r"$d1$",r"$e1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
-
-#Fixed parameters
-e0 = 1.1
+corner_labels = [r"$d0$",r"$d1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
 
 #Scale factors, redshifts, volume
 scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
@@ -38,6 +35,18 @@ all_cosmologies = np.genfromtxt("../cosmology_files/building_cosmos_all_params.t
 #The paths to the data and covariances. This is hard coded in.
 data_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
 cov_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
+
+#This contains our parameterization
+guesses = np.array([1.97,1.0,0.51,1.228,-19.0]) #d,e,f,g, ln_scatter
+guesses = np.array([2.13,0.11,0.41,0.15,1.25,0.11]) #d0,d1,f0,f1,g0,g1
+header = "d0\td1\tf0\tf1\tg0\tg1"
+def get_params(model,sf):
+    d0,d1,f0,f1,g0,g1 = model
+    d = d0+(sf-0.5)*d1
+    e = 1.0
+    f = f0+(sf-0.5)*f1
+    g = g0+(sf-0.5)*g1
+    return d,e,f,g
 
 #Create the output files
 from_scratch = False
@@ -95,11 +104,6 @@ for i in xrange(box_lo,box_hi):
         TMF_model_array.append(TMF_model)
         continue
     
-    #Guess the parameters
-    guesses = np.array([1.97,1.0,0.51,1.228,-19.0]) #d,e,f,g, ln_scatter
-    guesses = np.array([2.13,0.11,0.10, #d0,d1,e0,e1
-                        0.41,0.15,1.25,0.11]) #f0,f1,g0,g1
-
     if run_test:
         test = TL.lnprob(guesses,scale_factors,redshifts,lM_bin_array,N_data_array,cov_array,icov_array,volume,TMF_model_array)
         print "Test result = %f\n"%test
@@ -111,12 +115,8 @@ for i in xrange(box_lo,box_hi):
         print "Best fit for Box%03d:\n%s\n"%(i,result)
 
     if run_bf_comparisons:
-        d0,d1,e1,f0,f1,g0,g1 = best_fit_models[i]
         for j in range(z_lo,z_hi):
-            d = d0+(scale_factors[j]-0.5)*d1
-            e = e0+(scale_factors[j]-0.5)*e1
-            f = f0+(scale_factors[j]-0.5)*f1
-            g = g0+(scale_factors[j]-0.5)*g1
+            d,e,f,g = get_params(best_fit_models[i],scale_factors[j])
             TMF_model_array[j].set_parameters(d,e,f,g)
             N = TMF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_err = np.sqrt(np.diagonal(cov_array[j]))
@@ -140,12 +140,8 @@ for i in xrange(box_lo,box_hi):
         var_models[i] = np.var(chain,0)
 
     if run_mcmc_comparisons:
-        d0,d1,e1,f0,f1,g0,g1 = mean_models[i]
         for j in range(z_lo,z_hi):
-            d = d0+(scale_factors[j]-0.5)*d1
-            e = e0+(scale_factors[j]-0.5)*e1
-            f = f0+(scale_factors[j]-0.5)*f1
-            g = g0+(scale_factors[j]-0.5)*g1
+            d,e,f,g = get_params(best_fit_models[i],scale_factors[j])
             TMF_model_array[j].set_parameters(d,e,f,g)
             N = TMF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_err = np.sqrt(np.diagonal(cov_array[j]))
@@ -153,16 +149,11 @@ for i in xrange(box_lo,box_hi):
             print "\nZ%d"%j
             for ind in range(len(N)):
                 print "Bin %d: %.1f +- %.1f\tvs\t%.1f  at  %f"%(ind,N_data_array[j][ind],N_err[ind],N[ind],sigdif[ind])
-
             visualize.NM_plot(lM_array[j],N_data_array[j],N_err,lM_array[j],N,title="Box%03d at z=%.2f"%(i,redshifts[j]))
 
     if calculate_chi2:
-        d0,d1,e1,f0,f1,g0,g1 = mean_models[i]
         for j in range(z_lo,z_hi):
-            d = d0+(scale_factors[j]-0.5)*d1
-            e = e0+(scale_factors[j]-0.5)*e1
-            f = f0+(scale_factors[j]-0.5)*f1
-            g = g0+(scale_factors[j]-0.5)*g1
+            d,e,f,g = get_params(best_fit_models[i],scale_factors[j])
             TMF_model_array[j].set_parameters(d,e,f,g)
             N_fit = TMF_model_array[j].n_in_bins(lM_bin_array[j])*volume
             N_data = N_data_array[j]
@@ -183,7 +174,6 @@ for i in xrange(box_lo,box_hi):
         plt.close()
 
     #Save the models
-    header = "d0\td1\te0\e1\tf0\tf1\tg0\tg1"
     np.savetxt("txt_files/full_best_fit_models.txt",best_fit_models,header=header)
     np.savetxt("txt_files/full_mean_models.txt",mean_models,header=header)
     np.savetxt("txt_files/full_var_models.txt",var_models,header=header)
