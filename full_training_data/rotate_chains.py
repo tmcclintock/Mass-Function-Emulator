@@ -27,13 +27,19 @@ D = np.copy(indata)
 C = np.cov(D,rowvar=False)
 w,R = np.linalg.eig(C)
 np.savetxt("rotated_chains/R_matrix.txt",R)
-for i in range(0,N_boxes):#3 boxes
+for i in range(0,1):#N_boxes):
     data = np.loadtxt(inbase%i)
+    imeans = np.mean(data,0)
     rD = np.dot(data[:],R)
     np.savetxt(outbase%i,rD)
     mean_models[i] = np.mean(rD,0)
     var_models[i] = np.var(rD,0)
+    print imeans
+    print mean_models[i]
     print "Saved box%03d"%i
-np.savetxt("txt_files/rotated_mean_models.txt",mean_models)
-np.savetxt("txt_files/rotated_var_models.txt",var_models)
-np.savetxt("txt_files/R_matrix.txt",R)
+    #fig = corner.corner(data,labels=old_labels)
+    #fig = corner.corner(rD)
+    #plt.show()
+#np.savetxt("txt_files/rotated_mean_models.txt",mean_models)
+#np.savetxt("txt_files/rotated_var_models.txt",var_models)
+#np.savetxt("txt_files/R_matrix.txt",R)
