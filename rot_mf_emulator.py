@@ -76,14 +76,16 @@ class mf_emulator(object):
     def predict_parameters(self,cosmology):
         """Docstring TODO"""
         if not self.trained:raise AttributeError("Need to train before predicting")
-        R = np.loadtxt("./full_training_data/txt_files/R_matrix.txt").T
+        #R = np.loadtxt("./full_training_data/txt_files/R_matrix.txt").T
+        R = np.loadtxt("./full_training_data/R_matrix.txt").T
+
         params = np.array([emu.predict_one_point(cosmology) for emu in self.emulator_list])
         means = params[:,0]
         errs = np.sqrt(params[:,1])
         means = np.dot(means[:],R)
         errs = np.dot(errs[:],R)
-        #return np.array([means,errs**2]).T
-        return np.array([emu.predict_one_point(cosmology) for emu in self.emulator_list])
+        return np.array([means,errs**2]).T
+        #return np.array([emu.predict_one_point(cosmology) for emu in self.emulator_list])
 
     def predict_mass_function(self,cosmology,redshift,lM_bins):
         """Docstring TODO"""
@@ -110,16 +112,16 @@ if __name__=="__main__":
     N_cosmologies = len(all_cosmologies)
 
     #Read in the input data
-    #means = np.loadtxt("./full_training_data/txt_files/rotated_mean_models.txt")
-    #variances = np.loadtxt("./full_training_data/txt_files/rotated_var_models.txt")
-    means = np.loadtxt("./full_training_data/txt_files/full_mean_models.txt")
-    variances = np.loadtxt("./full_training_data/txt_files/full_var_models.txt")
+    means = np.loadtxt("./full_training_data/txt_files/rotated_mean_models.txt")
+    variances = np.loadtxt("./full_training_data/txt_files/rotated_var_models.txt")
+    #means = np.loadtxt("./full_training_data/txt_files/full_mean_models.txt")
+    #variances = np.loadtxt("./full_training_data/txt_files/full_var_models.txt")
     data = np.ones((N_cosmologies,len(means[0]),2)) #Last column is for mean/erros
     data[:,:,0] = means
     data[:,:,1] = np.sqrt(variances)
     
     #Pick out the training/testing data
-    box_index, z_index = 0, 9
+    box_index, z_index = 1, 9
     test_cosmo = all_cosmologies[box_index]
     test_data = data[box_index]
     training_cosmologies = np.delete(all_cosmologies,box_index,0)
@@ -135,12 +137,12 @@ if __name__=="__main__":
     print "pred params: ",predicted[:,0]
 
     #Read in the test mass function
-    MF_data = np.genfromtxt("./test_data/Box%03d_full_Z%d.txt"%(box_index,z_index))
-    MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box000_full/Box%03d_full_Z%d.txt"%(box_index,z_index))
+    #MF_data = np.genfromtxt("./test_data/Box%03d_full_Z%d.txt"%(box_index,z_index))
+    MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"%(box_index,box_index,z_index))
     lM_bins = MF_data[:,:2]
     N_data = MF_data[:,2]
-    cov_data = np.genfromtxt("./test_data/Box%03d_cov_Z%d.txt"%(box_index,z_index))
-    cov_data = np.genfromtxt("../../all_MF_data/building_MF_data/covariances/Box000_cov/Box%03d_cov_Z%d.txt"%(box_index,z_index))
+    #cov_data = np.genfromtxt("./test_data/Box%03d_cov_Z%d.txt"%(box_index,z_index))
+    cov_data = np.genfromtxt("../../all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"%(box_index,box_index,z_index))
     N_err = np.sqrt(np.diagonal(cov_data))
 
     #Scale factors and redshifts
