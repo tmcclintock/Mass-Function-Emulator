@@ -8,7 +8,7 @@ import training_likelihoods as TL
 import matplotlib.pyplot as plt
 
 #Choose which modes to run
-run_test = False
+run_test = True
 run_best_fit = False
 run_bf_comparisons = False
 run_mcmc = False
@@ -17,11 +17,8 @@ calculate_chi2 = False
 see_corner = False
 
 #MCMC configuration
-N_parameters = 6
 nwalkers, nsteps = 16, 5000
 nburn = 2000
-#corner_labels = [r"$d0$",r"$d1$",r"$e0$",r"$e1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
-corner_labels = [r"$d0$",r"$d1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
 
 #Scale factors, redshifts, volume
 scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
@@ -30,14 +27,18 @@ volume = 1050.**3 #[Mpc/h]^3
 
 #Gather the cosmological parameters
 N_boxes, N_z = 39, 10 #39th is broken
-all_cosmologies = np.genfromtxt("../cosmology_files/building_cosmos_all_params.txt")
+all_cosmologies = np.genfromtxt("../test_data/building_cosmos.txt")
 
 #The paths to the data and covariances. This is hard coded in.
-data_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
-cov_path = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
+building_base = "/home/tmcclintock/Desktop/all_MF_data/building_MF_data/"
+data_path = building_base+"full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
+cov_path = building_base+"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
 #This contains our parameterization
-guesses = np.array([1.97,1.0,0.51,1.228,-19.0]) #d,e,f,g, ln_scatter
+N_parameters = 6
+#corner_labels = [r"$d0$",r"$d1$",r"$e0$",r"$e1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
+corner_labels = [r"$d0$",r"$d1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
+guesses = np.array([1.97,1.0,0.51,1.228]) #d,e,f,g
 guesses = np.array([2.13,0.11,0.41,0.15,1.25,0.11]) #d0,d1,f0,f1,g0,g1
 header = "d0\td1\tf0\tf1\tg0\tg1"
 def get_params(model,sf):
@@ -49,21 +50,23 @@ def get_params(model,sf):
     return d,e,f,g
 
 #Create the output files
-from_scratch = False
+from_scratch = False ################################################
+base_dir = "./6params/"
+base_save = base_dir+"dfg_"
 if from_scratch:
     best_fit_models = np.zeros((N_boxes,N_parameters))
-    np.savetxt("txt_files/full_best_fit_models.txt",best_fit_models)
+    np.savetxt(base_save+"bests.txt",best_fit_models)
     mean_models = np.zeros((N_boxes,N_parameters))
-    np.savetxt("txt_files/full_mean_models.txt",mean_models)
+    np.savetxt(base_save+"means.txt",mean_models)
     var_models = np.zeros((N_boxes,N_parameters))
-    np.savetxt("txt_files/full_var_models.txt",var_models)
+    np.savetxt(base_save+"vars.txt",var_models)
     chi2s = np.zeros((N_boxes,N_z))
-    np.savetxt("txt_files/full_chi2_models.txt",chi2s)
+    np.savetxt(base_save+"BFchi2s.txt",chi2s)
 else: 
-    best_fit_models = np.loadtxt("txt_files/full_best_fit_models.txt")
-    mean_models = np.loadtxt("txt_files/full_mean_models.txt")
-    var_models = np.loadtxt("txt_files/full_var_models.txt")
-    chi2s = np.loadtxt("txt_files/full_chi2_models.txt")
+    best_fit_models = np.loadtxt(base_save+"_bests.txt")
+    mean_models = np.loadtxt(base_save+"means.txt")
+    var_models = np.loadtxt(base_save+"vars.txt")
+    chi2s = np.loadtxt(base_save+"_BFchi2s.txt")
 
 #Loop over cosmologies and redshifts
 box_lo,box_hi = 0,N_boxes
@@ -134,8 +137,8 @@ for i in xrange(box_lo,box_hi):
         likes = sampler.flatlnprobability
         burn = fullchain[:nwalkers*nburn]
         chain = fullchain[nwalkers*nburn:]
-        np.savetxt("chains/Box%03d_chain.txt"%(i),fullchain)
-        np.savetxt("chains/Box%03d_likes.txt"%(i),likes)
+        np.savetxt(base_dir+"chains/Box%03d_chain.txt"%(i),fullchain)
+        np.savetxt(base_dir+"chains/Box%03d_likes.txt"%(i),likes)
         mean_models[i] = np.mean(chain,0)
         var_models[i] = np.var(chain,0)
 
@@ -166,7 +169,7 @@ for i in xrange(box_lo,box_hi):
         print chi2s[i]
 
     if see_corner:
-        fullchain = np.loadtxt("chains/Box%03d_chain.txt"%(i))
+        fullchain = np.loadtxt(base_dir+"chains/Box%03d_chain.txt"%(i))
         chain = fullchain[nwalkers*nburn:]
         fig = corner.corner(chain,labels=corner_labels,plot_datapoints=False)
         plt.gcf().savefig("figures/Box%03d_corner.png"%(i))
@@ -174,9 +177,9 @@ for i in xrange(box_lo,box_hi):
         plt.close()
 
     #Save the models
-    np.savetxt("txt_files/full_best_fit_models.txt",best_fit_models,header=header)
-    np.savetxt("txt_files/full_mean_models.txt",mean_models,header=header)
-    np.savetxt("txt_files/full_var_models.txt",var_models,header=header)
-    np.savetxt("txt_files/full_chi2_models.txt",chi2s)
+    np.savetxt(base_save+"_bests.txt",best_fit_models,header=header)
+    np.savetxt(base_save+"means.txt",mean_models,header=header)
+    np.savetxt(base_save+"vars.txt",var_models,header=header)
+    np.savetxt(base_save+"_BFchi2s.txt",chi2s)
     continue #end loop over boxes/cosmologies
-
+    
