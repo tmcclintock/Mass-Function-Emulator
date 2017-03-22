@@ -76,8 +76,8 @@ class mf_emulator(object):
     def predict_parameters(self,cosmology):
         """Docstring TODO"""
         if not self.trained:raise AttributeError("Need to train before predicting")
-        #R = np.loadtxt("./full_training_data/txt_files/R_matrix.txt").T
-        R = np.loadtxt("./full_training_data/R_matrix.txt").T
+        R = np.loadtxt("./full_training_data/txt_files/R_matrix.txt").T
+        #R = np.loadtxt("../full_training_data/R_matrix.txt").T
 
         params = np.array([emu.predict_one_point(cosmology) for emu in self.emulator_list])
         means = params[:,0]

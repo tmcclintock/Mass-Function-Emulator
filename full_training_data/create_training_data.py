@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 #Choose which modes to run
 run_test = False
 run_best_fit = False
-run_bf_comparisons = True
+run_bf_comparisons = False
 run_mcmc = False
 run_mcmc_comparisons = False
 calculate_chi2 = False
