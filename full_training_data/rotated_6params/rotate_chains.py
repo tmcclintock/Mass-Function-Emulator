@@ -15,31 +15,46 @@ var_models = np.zeros((N_boxes,N_p))
 
 #Just use Box000 to find the rotations
 index = 0
-inbase = "../chains/Box%03d_chain.txt"
-indata = np.loadtxt(inbase%index)
-print indata.shape
+inbase = "../6params/chains/Box%03d_chain.txt"
 
-outdata = np.copy(indata)
-outbase = "./Rotated_Box%03d_chain.txt"
+outbase = "./rotated_chains/Rotated_Box%03d_chain.txt"
 
-indices = [0,1,2,3,4,5] #Indices to rotate
-D = np.copy(indata)
-C = np.cov(D,rowvar=False)
-w,R = np.linalg.eig(C)
-np.savetxt("./R_matrix.txt",R)
-for i in range(0,1):#N_boxes):
-    data = np.loadtxt(inbase%i)
-    imeans = np.mean(data,0)
-    rD = np.dot(data[:],R)
-    np.savetxt(outbase%i,rD)
-    mean_models[i] = np.mean(rD,0)
-    var_models[i] = np.var(rD,0)
-    print imeans
-    print mean_models[i]
-    print "Saved box%03d"%i
-    #fig = corner.corner(data,labels=old_labels)
-    #fig = corner.corner(rD)
-    #plt.show()
-#np.savetxt("txt_files/rotated_mean_models.txt",mean_models)
-#np.savetxt("txt_files/rotated_var_models.txt",var_models)
-#np.savetxt("txt_files/R_matrix.txt",R)
+make_Rs = False
+rotate = True
+
+if make_Rs:
+    #First find all the rotation matrices
+    for i in range(0,N_boxes):
+        data = np.loadtxt(inbase%i)
+        D = np.copy(data)
+        C = np.cov(D,rowvar=False)
+        w,R = np.linalg.eig(C)
+        np.savetxt("./rotated_chains/R%d_matrix.txt"%i,R)
+        if i == 0: np.savetxt("./rotated_chains/R_matrix.txt",R)
+        if i == 0: np.savetxt("./R_matrix.txt",R)
+
+        print "Created R%d"%i
+
+if rotate:
+    #First get the Rotation matrix
+    R_matrices = []
+    for i in range(0,N_boxes):
+        R_matrices.append(np.loadtxt("./rotated_chains/R%d_matrix.txt"%i))
+    R_matrices = np.array(R_matrices)
+    #R = np.mean(R_matrices,0)
+    R = np.loadtxt("./rotated_chains/R_matrix.txt")
+    #Now rotate some chains
+    for i in range(0,N_boxes):
+        data = np.loadtxt(inbase%i)
+        imeans = np.mean(data,0)
+        rD = np.dot(data[:],R)
+        np.savetxt(outbase%i,rD)
+        mean_models[i] = np.mean(rD,0)
+        var_models[i] = np.var(rD,0)
+        print "Saved box%03d"%i
+        #fig = corner.corner(data,labels=old_labels)
+        #fig = corner.corner(rD)
+        #plt.show()
+    np.savetxt("./rotated_dfg_means.txt",mean_models)
+    np.savetxt("./rotated_dfg_vars.txt",var_models)
+    #np.savetxt("./R_matrix.txt",R)
