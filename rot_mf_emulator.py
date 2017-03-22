@@ -134,11 +134,9 @@ if __name__=="__main__":
     print "pred params: ",predicted[:,0]
 
     #Read in the test mass function
-    #MF_data = np.genfromtxt("./test_data/Box%03d_full_Z%d.txt"%(box_index,z_index))
     MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"%(box_index,box_index,z_index))
     lM_bins = MF_data[:,:2]
     N_data = MF_data[:,2]
-    #cov_data = np.genfromtxt("./test_data/Box%03d_cov_Z%d.txt"%(box_index,z_index))
     cov_data = np.genfromtxt("../../all_MF_data/building_MF_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"%(box_index,box_index,z_index))
     N_err = np.sqrt(np.diagonal(cov_data))
 
