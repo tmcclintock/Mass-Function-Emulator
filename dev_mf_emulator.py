@@ -99,8 +99,8 @@ if __name__=="__main__":
     N_cosmologies = len(all_cosmologies)
 
     #Read in the input data
-    means = np.loadtxt("./full_training_data/txt_files/full_mean_models.txt")
-    variances = np.loadtxt("./full_training_data/txt_files/full_var_models.txt")
+    means = np.loadtxt("./full_training_data/6params/dfg_means.txt")
+    variances = np.loadtxt("./full_training_data/6params/dfg_vars.txt")
     data = np.ones((N_cosmologies,len(means[0]),2)) #Last column is for mean/erros
     data[:,:,0] = means
     data[:,:,1] = np.sqrt(variances)

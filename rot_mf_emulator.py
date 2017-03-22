@@ -75,9 +75,8 @@ class mf_emulator(object):
 
     def predict_parameters(self,cosmology):
         """Docstring TODO"""
-        if not self.trained:raise AttributeError("Need to train before predicting")
-        R = np.loadtxt("./full_training_data/txt_files/R_matrix.txt").T
-        #R = np.loadtxt("../full_training_data/R_matrix.txt").T
+        if not self.trained:raise AttributeError("Need to train emulators.")
+        R = np.loadtxt("./full_training_data/rotated_6params/R_matrix.txt").T
 
         params = np.array([emu.predict_one_point(cosmology) for emu in self.emulator_list])
         means = params[:,0]
@@ -112,11 +111,9 @@ if __name__=="__main__":
     N_cosmologies = len(all_cosmologies)
 
     #Read in the input data
-    means = np.loadtxt("./full_training_data/txt_files/rotated_mean_models.txt")
-    variances = np.loadtxt("./full_training_data/txt_files/rotated_var_models.txt")
-    #means = np.loadtxt("./full_training_data/txt_files/full_mean_models.txt")
-    #variances = np.loadtxt("./full_training_data/txt_files/full_var_models.txt")
-    data = np.ones((N_cosmologies,len(means[0]),2)) #Last column is for mean/erros
+    means = np.loadtxt("./full_training_data/rotated_6params/rotated_dfg_means.txt")
+    variances = np.loadtxt("./full_training_data/rotated_6params/rotated_dfg_vars.txt")
+    data = np.ones((N_cosmologies,len(means[0]),2))
     data[:,:,0] = means
     data[:,:,1] = np.sqrt(variances)
     
