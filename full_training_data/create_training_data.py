@@ -8,10 +8,10 @@ import training_likelihoods as TL
 import matplotlib.pyplot as plt
 
 #Choose which modes to run
-run_test = True
-run_best_fit = False
+run_test = False
+run_best_fit = True
 run_bf_comparisons = False
-run_mcmc = False
+run_mcmc = True
 run_mcmc_comparisons = False
 calculate_chi2 = False
 see_corner = False
@@ -35,24 +35,26 @@ data_path = building_base+"full_mf_data/Box%03d_full/Box%03d_full_Z%d.txt"
 cov_path = building_base+"covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"
 
 #This contains our parameterization
-N_parameters = 6
-#corner_labels = [r"$d0$",r"$d1$",r"$e0$",r"$e1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
-corner_labels = [r"$d0$",r"$d1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
+N_parameters = 8
+corner_labels = [r"$d0$",r"$d1$",r"$e0$",r"$e1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
+#corner_labels = [r"$d0$",r"$d1$",r"$f0$",r"$f1$",r"$g0$",r"$g1$"]
 guesses = np.array([1.97,1.0,0.51,1.228]) #d,e,f,g
-guesses = np.array([2.13,0.11,0.41,0.15,1.25,0.11]) #d0,d1,f0,f1,g0,g1
-header = "d0\td1\tf0\tf1\tg0\tg1"
+guesses = np.array([2.13,0.11, 0.41,0.15, 1.25,0.11]) #d0,d1,f0,f1,g0,g1
+guesses = np.array([2.13,0.11, 1.1,0.2, 0.41,0.15, 1.25,0.11]) #d0,d1,e0,e1,f0,f1,g0,g1
+#header = "d0\td1\tf0\tf1\tg0\tg1"
+header = "d0\td1\te0\te1\tf0\tf1\tg0\tg1"
 def get_params(model,sf):
-    d0,d1,f0,f1,g0,g1 = model
+    d0,d1,e0,e1,f0,f1,g0,g1 = model
     d = d0+(sf-0.5)*d1
-    e = 1.0
+    e = e0+(sf-0.5)*e1
     f = f0+(sf-0.5)*f1
     g = g0+(sf-0.5)*g1
     return d,e,f,g
 
 #Create the output files
-from_scratch = False ################################################
-base_dir = "./6params/"
-base_save = base_dir+"dfg_"
+from_scratch = True ################################################
+base_dir = "./8params/"
+base_save = base_dir+"defg_"
 if from_scratch:
     best_fit_models = np.zeros((N_boxes,N_parameters))
     np.savetxt(base_save+"bests.txt",best_fit_models)
@@ -177,9 +179,9 @@ for i in xrange(box_lo,box_hi):
         plt.close()
 
     #Save the models
-    np.savetxt(base_save+"_bests.txt",best_fit_models,header=header)
+    np.savetxt(base_save+"bests.txt",best_fit_models,header=header)
     np.savetxt(base_save+"means.txt",mean_models,header=header)
     np.savetxt(base_save+"vars.txt",var_models,header=header)
-    np.savetxt(base_save+"_BFchi2s.txt",chi2s)
+    np.savetxt(base_save+"BFchi2s.txt",chi2s)
     continue #end loop over boxes/cosmologies
     
