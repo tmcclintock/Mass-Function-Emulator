@@ -92,7 +92,7 @@ class mf_emulator(object):
         
 if __name__=="__main__":
     #Read in the input cosmologies
-    all_cosmologies = np.genfromtxt("./test_data/building_cosmos_all_params.txt")
+    all_cosmologies = np.genfromtxt("./test_data/building_cosmos.txt")
     #all_cosmologies = np.delete(all_cosmologies,5,1) #Delete ln10As
     all_cosmologies = np.delete(all_cosmologies,0,1) #Delete boxnum
     all_cosmologies = np.delete(all_cosmologies,-1,0)#39 is broken
