@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 run_test = False
 run_best_fit = True
 run_bf_comparisons = False
-run_mcmc = True
+run_mcmc = False
 run_mcmc_comparisons = False
 calculate_chi2 = False
 see_corner = False
@@ -139,7 +139,7 @@ for i in xrange(box_lo,box_hi):
         likes = sampler.flatlnprobability
         burn = fullchain[:nwalkers*nburn]
         chain = fullchain[nwalkers*nburn:]
-        np.savetxt(base_dir+"chains/Box%03d_chain.txt"%(i),fullchain)
+        np.savetxt(base_dir+"chains/Box%03d_chain.txt"%(i),fullchain,header=header)
         np.savetxt(base_dir+"chains/Box%03d_likes.txt"%(i),likes)
         mean_models[i] = np.mean(chain,0)
         var_models[i] = np.var(chain,0)
