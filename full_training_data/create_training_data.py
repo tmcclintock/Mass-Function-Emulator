@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 
 #Choose which modes to run
 run_test = False
-run_best_fit = True
+run_best_fit = False
 run_bf_comparisons = False
-run_mcmc = False
+run_mcmc = True
 run_mcmc_comparisons = False
 calculate_chi2 = False
 see_corner = False
@@ -52,7 +52,7 @@ def get_params(model,sf):
     return d,e,f,g
 
 #Create the output files
-from_scratch = True ################################################
+from_scratch = False ################################################
 base_dir = "./8params/"
 base_save = base_dir+"defg_"
 if from_scratch:
@@ -65,10 +65,10 @@ if from_scratch:
     chi2s = np.zeros((N_boxes,N_z))
     np.savetxt(base_save+"BFchi2s.txt",chi2s)
 else: 
-    best_fit_models = np.loadtxt(base_save+"_bests.txt")
+    best_fit_models = np.loadtxt(base_save+"bests.txt")
     mean_models = np.loadtxt(base_save+"means.txt")
     var_models = np.loadtxt(base_save+"vars.txt")
-    chi2s = np.loadtxt(base_save+"_BFchi2s.txt")
+    chi2s = np.loadtxt(base_save+"BFchi2s.txt")
 
 #Loop over cosmologies and redshifts
 box_lo,box_hi = 0,N_boxes
