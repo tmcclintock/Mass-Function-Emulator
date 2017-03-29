@@ -19,7 +19,7 @@ inbase = "../6params/chains/Box%03d_chain.txt"
 
 outbase = "./rotated_chains/Rotated_Box%03d_chain.txt"
 
-make_Rs = False
+make_Rs = True
 rotate = True
 
 if make_Rs:
@@ -30,9 +30,11 @@ if make_Rs:
         C = np.cov(D,rowvar=False)
         w,R = np.linalg.eig(C)
         np.savetxt("./rotated_chains/R%d_matrix.txt"%i,R)
-        if i == 0: np.savetxt("./rotated_chains/R_matrix.txt",R)
-        if i == 0: np.savetxt("./R_matrix.txt",R)
-
+        #As it turns out, cosmo 34 is the middle-most box,
+        #so use it for the rotation matrix.
+        if i == 34: np.savetxt("./rotated_chains/R_matrix.txt",R)
+        if i == 34: np.savetxt("./R_matrix.txt",R)
+        if i == 34: np.savetxt("../R_matrix.txt",R)
         print "Created R%d"%i
 
 if rotate:

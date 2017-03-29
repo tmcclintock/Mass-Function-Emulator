@@ -10,6 +10,9 @@ import emulator, sys
 import numpy as np
 import tinker_mass_function as TMF
 
+#R = np.loadtxt("./full_training_data/rotated_6params/R_matrix.txt").T
+R = np.loadtxt("../full_training_data/R_matrix.txt").T
+
 class mf_emulator(object):
     """
     This must take a name so that it can save and load.
@@ -76,7 +79,6 @@ class mf_emulator(object):
     def predict_parameters(self,cosmology):
         """Docstring TODO"""
         if not self.trained:raise AttributeError("Need to train emulators.")
-        R = np.loadtxt("./full_training_data/rotated_6params/R_matrix.txt").T
 
         params = np.array([emu.predict_one_point(cosmology) for emu in self.emulator_list])
         means = params[:,0]
@@ -116,9 +118,10 @@ if __name__=="__main__":
     data = np.ones((N_cosmologies,len(means[0]),2))
     data[:,:,0] = means
     data[:,:,1] = np.sqrt(variances)
+    print data[0,0]
     
     #Pick out the training/testing data
-    box_index, z_index = 1, 9
+    box_index, z_index = 0, 0
     test_cosmo = all_cosmologies[box_index]
     test_data = data[box_index]
     training_cosmologies = np.delete(all_cosmologies,box_index,0)
@@ -148,7 +151,7 @@ if __name__=="__main__":
     volume = 1050.**3 #[Mpc/h]^3
     n = mf_emulator.predict_mass_function(test_cosmo,redshift=redshifts[z_index],lM_bins=lM_bins)
     N_emu = n*volume
-        
+
     chi2 = np.dot((N_data-N_emu),np.dot(np.linalg.inv(cov_data),(N_data-N_emu)))
     sigdif = (N_data-N_emu)/N_err
     for i in range(len(N_data)):
