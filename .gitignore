@@ -8,6 +8,7 @@ analysis/*.p
 analysis/output_files/*
 analysis/output_files/chains/*
 full_training_data/rotated_6params/rotated_chains/*.txt
+full_training_data/mix_rotated_6params/mixed_chains/*.txt
 
 # emacs backup files
 *~
