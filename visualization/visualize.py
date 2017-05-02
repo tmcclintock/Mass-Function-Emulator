@@ -1,108 +1,43 @@
 import numpy as np
 import sys
-sys.path.insert(0,"../NM_model/")
 import cosmocalc as cc
 import matplotlib.pyplot as plt
-#plt.rc(usetex=True)
-plt.rc('text',usetex=True, fontsize=20)
+plt.rc('text', usetex=True, fontsize=20)
 
 show_plots = True
+xlabel  = r"$\log_{10}M\ [{\rm M_\odot}/h]$"
+y0label = r"$N/[{\rm Gpc}^3\  \log_{10}{\rm M_\odot}/h]$"
+y1label = r"$\%\ {\rm Diff}$"
 
-def single_NM_plot(lM_data, NM_data, NM_err):
-    fig,ax = plt.subplots(1,1)
-    
-    ax.errorbar(lM_data,NM_data,yerr=NM_err)
-    ax.set_yscale('log')
-
-    ax.set_xlabel(r"$\log_{10}M\ [{\rm M_\odot}/h]$")
-    ylims = ax.get_ylim()
-    #ax.set_ylim(1e-0,1e6)
-    ax.set_ylabel(r"$N(M,z)$")
-    plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
-    if show_plots:
-        plt.show()
-    plt.close()
-    return
-
-def NM_plot(lM_data, NM_data, NM_err, lM_model, NM_model,title=None):
-    f,axarr = plt.subplots(2, sharex = True)
-    
-    axarr[0].errorbar(lM_data,NM_data,yerr=NM_err,marker='.',c='k')
-    axarr[0].plot(lM_model,NM_model,c='r')
+def N_comparison(lM, N_data, N_err, N_model, 
+                 title=None, save=False, show=False):
+    f,axarr = plt.subplots(2, sharex=True)
+    axarr[0].errorbar(lM, N_data, yerr=N_err, marker='.', c='k')
+    axarr[0].plot(lM, N_model, c='r')
     axarr[0].set_yscale('log')
 
-    pdiff = 100*(NM_data - NM_model)/NM_model
-    pde = 100*NM_err/NM_model
-    axarr[1].errorbar(lM_data,pdiff,pde,marker='.',c='k')
+    axarr[1].plot(axarr[1].get_xlim(), [0, 0], "k--")
+    pdiff = 100*(N_data - N_model)/N_model
+    pde = 100*N_err/N_model
+    axarr[1].errorbar(lM, pdiff, pde, marker='.', c='k')
     ylim_max = max(np.fabs(pdiff)) + max(np.fabs(pde))
-    xlim = axarr[1].get_xlim()
-    ylim = [-ylim_max,ylim_max]
-    ylim = [1e-1,1e6]
-    axarr[1].plot(xlim,[0,0],"k--")
-    axarr[1].set_xlim(xlim)
+    ylim = [-ylim_max, ylim_max]
+    ylim = [1e-1, 1e6]
+
     axarr[0].set_ylim(ylim)
-    axarr[1].set_ylim(-18,18)
-    axarr[1].set_xlabel(r"$\log_{10}M\ [{\rm M}_\odot/h]$")
-    #axarr[0].set_ylabel(r"$N(M,z)$")
-    axarr[0].set_ylabel(r"${\rm Number}/[1\ {\rm Gpc^3}\ \log_{10}{\rm M_}\odot/h]$")
-    axarr[1].set_ylabel(r"$\%\ {\rm Diff}$")
-    plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
+    axarr[1].set_ylim(-20, 20)
+    axarr[1].set_xlabel(xlabel)
+    axarr[0].set_ylabel(y0label)
+    axarr[1].set_ylabel(y1label)
+    plt.subplots_adjust(bottom=0.15, left=0.15, hspace=0.001)
     if title is not None: axarr[0].set_title(title)
-    if show_plots:
-        #plt.gcf().savefig("../../mfe.png")
-        plt.show()
-    plt.close()
-    return
-
-def NM_emulated(lM_data, NM_data, NM_err, lM_emu, NM_emu, NM_emu_err,title,savepath):
-    f,axarr = plt.subplots(2, sharex = True)
-    axarr[0].set_title(title)
-
-    NM_upper = NM_emu + NM_emu_err
-    NM_lower = NM_emu - NM_emu_err
-    
-    axarr[0].errorbar(lM_data,NM_data,yerr=NM_err)
-    axarr[0].plot(lM_emu,NM_emu,c='r')
-    axarr[0].plot(lM_emu,NM_upper,c='g')
-    axarr[0].plot(lM_emu,NM_lower,c='g')
-    axarr[0].set_yscale('log')
-
-    #resid = (NM_data - NM_emu)/np.sqrt(((0.01*NM_emu)**2+NM_err**2))
-    #resid_err = NM_err/np.sqrt(((0.01*NM_emu)**2+NM_err**2))
-    #resid_upper = (NM_data - NM_upper)/np.sqrt(((0.01*NM_upper)**2+NM_err**2))
-    #resid_lower = (NM_data - NM_lower)/np.sqrt(((0.01*NM_lower)**2+NM_err**2))
-
-    resid = (NM_data - NM_emu)/np.sqrt(NM_err**2)
-    resid_err = NM_err/np.sqrt(NM_err**2)
-    resid_upper = (NM_data - NM_upper)/np.sqrt(NM_err**2)
-    resid_lower = (NM_data - NM_lower)/np.sqrt(NM_err**2)
-
-    axarr[1].errorbar(lM_data,resid,resid_err,c='b')
-    axarr[1].plot(lM_data,resid_upper,c='g')
-    axarr[1].plot(lM_data,resid_lower,c='g')
-
-    #Draw dashed lines at 1%
-    lims = axarr[1].get_xlim()
-    axarr[1].plot(lims,[1,1],"k--",zorder=-1,alpha=0.5)
-    axarr[1].plot(lims,[-1,-1],"k--",zorder=-1,alpha=0.5)
-
-    axarr[1].set_ylim(-10,10)
-    #axarr[1].set_ylim(-5,5)
-    axarr[1].set_xlabel(r"$\log_{10}M\ [{\rm M_\odot/h}]$")
-    axarr[0].set_ylabel(r"$N(M,z)$")
-    #axarr[1].set_ylabel(r"$\frac{N-N_m}{\sqrt{(0.01N_m)^2+\sigma_N^2}}$")
-    axarr[1].set_ylabel(r"$\frac{N-N_m}{\sigma_N}$")
-
-    plt.subplots_adjust(bottom=0.15,left=0.15,hspace=0.001)
-    plt.gcf().savefig(savepath)
-    if show_plots:
-        plt.show()
+    if save: plt.gcf().savefig("plot.png")
+    if show: plt.show()
     plt.clf()
-    plt.close()
     return
 
-def g_sigma_plot(NM_model_obj,redshift,volume,cosmo_dict,\
-                     lM_data,lM_bins,NM_data,NM_err,best_params):
+def g_sigma_plot(NM_model_obj,redshift,volume,cosmo_dict,
+                 lM_data,lM_bins,NM_data,NM_err,best_params):
     G = 4.52e-48 #Newton's gravitional constant in Mpc^3/s^2/Solar Mass
     Mpcperkm = 3.241e-20 #Mpc/km; used to convert H0 to s^-1
     Om,H0 = cosmo_dict["om"],cosmo_dict["h"]*100.0
