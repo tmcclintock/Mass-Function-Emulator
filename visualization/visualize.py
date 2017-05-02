@@ -1,6 +1,5 @@
 import numpy as np
 import sys
-import cosmocalc as cc
 import matplotlib.pyplot as plt
 plt.rc('text', usetex=True, fontsize=20)
 
@@ -33,11 +32,11 @@ def N_comparison(lM, N_data, N_err, N_model,
     if title is not None: axarr[0].set_title(title)
     if save: plt.gcf().savefig("plot.png")
     if show: plt.show()
-    plt.clf()
-    return
+    return f
 
 def g_sigma_plot(NM_model_obj,redshift,volume,cosmo_dict,
                  lM_data,lM_bins,NM_data,NM_err,best_params):
+    import cosmocalc as cc
     G = 4.52e-48 #Newton's gravitional constant in Mpc^3/s^2/Solar Mass
     Mpcperkm = 3.241e-20 #Mpc/km; used to convert H0 to s^-1
     Om,H0 = cosmo_dict["om"],cosmo_dict["h"]*100.0

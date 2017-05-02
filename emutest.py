@@ -3,6 +3,8 @@ A test script with which I can quickly switch between emulators.
 """
 import emulator, sys, os
 import numpy as np
+sys.path.insert(0,'./visualization/')
+import visualize
 from mf_emulator import *
 
 #Which data we are working with
@@ -61,8 +63,6 @@ for i in range(len(N_data)):
     print "Bin %d: %.1f +- %.1f\tvs\t%.1f  at  %f"%(i,N_data[i],N_err[i],N_emu[i],sigdif[i])
 print "chi2 = %f"%chi2
     
-sys.path.insert(0,'./visualization/')
-import visualize
 lM = np.log10(np.mean(10**lM_bins,1))
 visualize.N_comparison(lM, N_data, N_err, N_emu, show=True)
 
