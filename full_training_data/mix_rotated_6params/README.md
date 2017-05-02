@@ -1,1 +1,0 @@
-This is similar to the other rotated version, except instead of rotating the whole parameter space (f0, f1, e0, e1, etc.) we group the intercepts together and the slopes together, since these are the parameters that exhibit degeneracy.
