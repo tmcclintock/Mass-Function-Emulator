@@ -1,10 +1,12 @@
 """
-This contains an actual mass function emulator
-that emulates the tinker mass function.
+This contains an actual mass function emulator.
 """
 import emulator, sys
 import numpy as np
 import tinker_mass_function as TMF
+
+#Which data we are working with
+dataname = "dfg"
 
 class mf_emulator(object):
     """
@@ -30,7 +32,7 @@ class mf_emulator(object):
         cosmo_dict = {"om":Om,"ob":Ob,"ol":1-Om,"ok":0.0,"h":h,"s8":sigma8,"ns":ns,"w0":w0,"wa":0.0}
         self.cosmology = cosmology
         self.cosmo_dict = cosmo_dict
-        self.MF = TMF.TMF_model(cosmo_dict,self.redshift,l10M_bounds)
+        self.MF = TMF.tinker_mass_function(cosmo_dict, self.redshift, l10M_bounds)
         self.redshift = redshift
         self.scale_factor = 1./(1.+self.redshift)
         self.l10M_bounds = l10M_bounds
@@ -55,15 +57,14 @@ class mf_emulator(object):
             emulator_list: a list with an emulator for each parameter
             trained: set to True onces training is complete
         """
-        if names == None:
-            names = ["emu_f0","emu_f1","emu_g0","emu_g1"]
         N_cosmos = len(cosmologies)
         N_emulators = training_data.shape[1]
         emulator_list = []
         for i in range(N_emulators):
-            y = training_data[:,i,0]
-            yerr = training_data[:,i,1]
-            emu = emulator.Emulator(name=names[i],xdata=cosmologies,ydata=y,yerr=yerr)
+            y = training_data[:, i, 0]
+            yerr = training_data[:, i, 1]
+            emu = emulator.Emulator(name="emu%d"%i, xdata=cosmologies, 
+                                    ydata=y, yerr=yerr)
             emu.train()
             emulator_list.append(emu)
         self.emulator_list = emulator_list
@@ -80,41 +81,63 @@ class mf_emulator(object):
         if not self.MF_ready: self.set_cosmology(cosmology,redshift)
         if not all(cosmology==self.cosmology): self.set_cosmology(cosmology,redshift)
         self.redshift = redshift
-        self.scale_factor = 1./(1+redshift)
+        a = 1./(1+redshift)
+        Tinker_defaults = {'d':1.97, 'e':1.0, "f": 0.51, 'g':1.228}
+        def get_params(model, sf):
+            if dataname is 'defg':
+                d0,d1,e0,e1,f0,f1,g0,g1 = model
+            if dataname is 'dfg':
+                d0,d1,f0,f1,g0,g1 = model
+                e0 = Tinker_defaults['e']
+                e1 = 0
+            if dataname is 'efg':
+                e0,e1,f0,f1,g0,g1 = model
+                d0 = Tinker_defaults['d']
+                d1 = 0
+            if dataname is 'fg':
+                f0,f1,g0,g1 = model
+                d0 = Tinker_defaults['d']
+                d1 = 0
+                e0 = Tinker_defaults['e']
+                e1 = 0
+            k = sf - 0.5
+            d = d0 + k*d1
+            e = e0 + k*e1
+            f = f0 + k*f1
+            g = g0 + k*g1
+            return d, e, f, g
         predictions = self.predict_parameters(cosmology)
         params, variances = predictions[:,0], predictions[:,1]
-        f0,f1,g0,g1 =  params
-        d,e = 1.97,1.0
-        f = f0 + (self.scale_factor-0.5)*f1
-        g = g0 + (self.scale_factor-0.5)*g1
+        d,e,f,g = get_params(params, a)
         self.MF.set_parameters(d,e,f,g)
         return self.MF.n_in_bins(lM_bins,redshift)
         
 if __name__=="__main__":
     #Read in the input cosmologies
-    all_cosmologies = np.genfromtxt("./test_data/building_cosmos.txt")
-    #all_cosmologies = np.delete(all_cosmologies,5,1) #Delete ln10As
-    all_cosmologies = np.delete(all_cosmologies,0,1) #Delete boxnum
-    all_cosmologies = np.delete(all_cosmologies,-1,0)#39 is broken
-    N_cosmologies = len(all_cosmologies)
+    cosmos = np.genfromtxt("./test_data/building_cosmos.txt")
+    #cosmos = np.delete(cosmos, [0, 5], 1) #Delete boxnum and ln10As
+    cosmos = np.delete(cosmos, 0, 1) #Delete boxnum
+    cosmos = np.delete(cosmos, -1, 0)#39 is broken
+    N_cosmos = len(cosmos)
 
     #Read in the input data
-    means = np.loadtxt("./test_data/mean_models.txt")
-    variances = np.loadtxt("./test_data/var_models.txt")
-    data = np.ones((N_cosmologies,len(means[0]),2)) #Last column is for mean/erros
+    database = "/home/tmcclintock/Desktop/Github_stuff/fit_mass_functions/output/%s/"%dataname
+    means     = np.loadtxt(database+"%s_means.txt"%dataname)
+    variances = np.loadtxt(database+"%s_vars.txt"%dataname)
+    data = np.ones((N_cosmos, len(means[0]),2)) #Last column is for mean/erros
     data[:,:,0] = means
     data[:,:,1] = np.sqrt(variances)
     
     #Pick out the training/testing data
-    box_index, z_index = 0, 9
-    test_cosmo = all_cosmologies[box_index]
-    test_data = data[box_index]
-    training_cosmologies = np.delete(all_cosmologies,box_index,0)
-    training_data = np.delete(data,box_index,0)
+    box, z_index = 0, 1
+    test_cosmo = cosmos[box]
+    test_data = data[box]
+    training_cosmos = np.delete(cosmos, box, 0)
+    training_data = np.delete(data, box, 0)
 
     #Train
     mf_emulator = mf_emulator("test")
-    mf_emulator.train(training_cosmologies,training_data)
+    mf_emulator.train(training_cosmos, training_data)
 
     #Predict the TMF parameters
     predicted = mf_emulator.predict_parameters(test_cosmo)
@@ -122,13 +145,11 @@ if __name__=="__main__":
     print "pred params: ",predicted[:,0]
 
     #Read in the test mass function
-    MF_data = np.genfromtxt("./test_data/Box%03d_full_Z%d.txt"%(box_index,z_index))
-    MF_data = np.genfromtxt("../../all_MF_data/building_MF_data/full_mf_data/Box000_full/Box%03d_full_Z%d.txt"%(box_index,z_index))
+    MF_data = np.genfromtxt("./test_data/N_data/Box%03d_full/Box%03d_full_Z%d.txt"%(box, box, z_index))
     lM_bins = MF_data[:,:2]
     N_data = MF_data[:,2]
-    cov_data = np.genfromtxt("./test_data/Box%03d_cov_Z%d.txt"%(box_index,z_index))
-    cov_data = np.genfromtxt("../../all_MF_data/building_MF_data/covariances/Box000_cov/Box%03d_cov_Z%d.txt"%(box_index,z_index))
-    N_err = np.sqrt(np.diagonal(cov_data))
+    cov_data = np.genfromtxt("./test_data/covariances/Box%03d_cov/Box%03d_cov_Z%d.txt"%(box, box, z_index))
+    N_err = np.sqrt(np.diagonal(cov_data)) + 0.01*N_data
 
     #Scale factors and redshifts
     scale_factors = np.array([0.25,0.333333,0.5,0.540541,0.588235,0.645161,0.714286,0.8,0.909091,1.0])
@@ -148,7 +169,6 @@ if __name__=="__main__":
     sys.path.insert(0,'./visualization/')
     import visualize
     lM = np.log10(np.mean(10**lM_bins,1))
-    #visualize.NM_plot(lM,N_data,N_err,lM,N_emu,title=r"LOO Box%03d at z=%.2f $\chi^2=%.2f$"%(box_index,redshifts[z_index],chi2))
-    visualize.NM_plot(lM,N_data,N_err,lM,N_emu)
+    visualize.N_comparison(lM, N_data, N_err, N_emu, show=True)
 
 
