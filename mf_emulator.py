@@ -76,7 +76,7 @@ class mf_emulator(object):
         if not self.trained:raise AttributeError("Need to train before predicting")
         return np.array([emu.predict_one_point(cosmology) for emu in self.emulator_list])
 
-    def predict_mass_function(self,cosmology,redshift,lM_bins):
+    def predict_mass_function(self, cosmology, redshift, lM_bins):
         """Docstring TODO"""
         if not self.MF_ready: self.set_cosmology(cosmology,redshift)
         if not all(cosmology==self.cosmology): self.set_cosmology(cosmology,redshift)
