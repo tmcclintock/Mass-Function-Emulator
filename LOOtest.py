@@ -54,7 +54,7 @@ redshifts = 1./scale_factors - 1.0
 
 #Predict the TMF
 volume = 1050.**3 #[Mpc/h]^3
-n = mf_emulator.predict_mass_function(test_cosmo,redshift=redshifts[z_index],lM_bins=lM_bins)
+n = mf_emulator.predict_mass_function(test_cosmo,redshift=redshifts[z_index],lM_bins=lM_bins, dataname=dataname)
 N_emu = n*volume
         
 chi2 = np.dot((N_data-N_emu),np.dot(np.linalg.inv(cov_data),(N_data-N_emu)))

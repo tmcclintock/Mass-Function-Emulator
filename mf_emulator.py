@@ -76,7 +76,7 @@ class mf_emulator(object):
         if not self.trained:raise AttributeError("Need to train before predicting")
         return np.array([emu.predict_one_point(cosmology) for emu in self.emulator_list])
 
-    def predict_mass_function(self, cosmology, redshift, lM_bins):
+    def predict_mass_function(self, cosmology, redshift, lM_bins, dataname):
         """Docstring TODO"""
         if not self.MF_ready: self.set_cosmology(cosmology,redshift)
         if not all(cosmology==self.cosmology): self.set_cosmology(cosmology,redshift)
@@ -157,7 +157,7 @@ if __name__=="__main__":
 
     #Predict the TMF
     volume = 1050.**3 #[Mpc/h]^3
-    n = mf_emulator.predict_mass_function(test_cosmo,redshift=redshifts[z_index],lM_bins=lM_bins)
+    n = mf_emulator.predict_mass_function(test_cosmo,redshift=redshifts[z_index],lM_bins=lM_bins,dataname=dataname)
     N_emu = n*volume
         
     chi2 = np.dot((N_data-N_emu),np.dot(np.linalg.inv(cov_data),(N_data-N_emu)))
