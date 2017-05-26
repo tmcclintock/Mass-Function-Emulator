@@ -1,1 +1,0 @@
-In this folder I create training data based on the full (i.e. 4 parameters, d,e,f,g) that can go into the Tinker mass function.
